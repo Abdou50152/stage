@@ -5,10 +5,14 @@ import { useCart } from '../contexts/CartContext';
 import { useRouter } from 'next/router';
 import { OrdersService } from '../services/orders.service';
 import { Order, OrderProduct } from '../types/order';
+import { useAuth } from '../contexts/AuthContext';
 
 const CheckoutPage: React.FC = () => {
   const { cart, total, clearCart } = useCart();
+  const { user } = useAuth();
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -27,7 +31,17 @@ const CheckoutPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+    
     try {
+      // Vérifier que le panier n'est pas vide
+      if (cart.length === 0) {
+        setError('Votre panier est vide. Veuillez ajouter des produits avant de passer commande.');
+        setIsSubmitting(false);
+        return;
+      }
+      
       // Génération d'une référence unique pour la commande
       const orderReference = 'CMD-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
       
@@ -38,7 +52,7 @@ const CheckoutPage: React.FC = () => {
         total: total,
         status: 'pending' as const,
         ...formData,
-        userId: null // Champ requis par le backend
+        userId: user?.id || null // Utiliser l'ID de l'utilisateur connecté si disponible
       };
 
       console.log('Envoi de la commande à l\'API:', orderData);
@@ -67,6 +81,9 @@ const CheckoutPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Erreur lors de la soumission de la commande:', error);
+      setError('Une erreur est survenue lors de la soumission de votre commande. Veuillez réessayer.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -74,6 +91,12 @@ const CheckoutPage: React.FC = () => {
     <Layout>
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Finaliser la commande</h1>
+        
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
+            <span className="block sm:inline">{error}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="max-w-lg">
           <div className="mb-4">
@@ -155,9 +178,22 @@ const CheckoutPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <button
               type="submit"
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              disabled={isSubmitting}
+              className={`${
+                isSubmitting ? 'bg-blue-300' : 'bg-blue-500 hover:bg-blue-700'
+              } text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline flex items-center`}
             >
-              Commander
+              {isSubmitting ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Traitement...
+                </>
+              ) : (
+                'Commander'
+              )}
             </button>
             <Link href="/panier" className="text-blue-500 hover:text-blue-800">
               Retour au panier

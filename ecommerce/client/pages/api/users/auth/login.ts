@@ -6,11 +6,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
+  // Admin credentials for testing:
+  // Email: admin@example.com
+  // Password: admin123
+
   const { email, password } = req.body;
 
   try {
     // Appel au backend (elegance) pour l'authentification
-    const response = await fetch('http://localhost:3001/api/users/login', {
+    const response = await fetch('http://localhost:3001/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

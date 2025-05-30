@@ -1,25 +1,12 @@
 import { Order, OrderProduct } from '../types/order';
-
-const API_URL = 'http://localhost:3001';
+import api from '../utils/api';
 
 export const OrdersService = {
   // Créer une nouvelle commande
   createOrder: async (orderData: Omit<Order, 'id'>): Promise<Order> => {
     try {
-      const response = await fetch(`${API_URL}/orders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderData)
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const order = await response.json();
-      return order;
+      const response = await api.post('/orders', orderData);
+      return response.data;
     } catch (error) {
       console.error('Erreur lors de la création de la commande:', error);
       // Fallback : sauvegarder dans le localStorage
@@ -41,21 +28,11 @@ export const OrdersService = {
           quantity: product.quantity,
           price: product.price,
           // Ajouter des valeurs par défaut pour les champs obligatoires
-          colorId: 1, // Valeur par défaut pour colorId
-          sizeId: 1   // Valeur par défaut pour sizeId
+          colorId: product.color ? parseInt(product.color) : 1, // Utiliser la couleur si disponible
+          sizeId: product.size ? parseInt(product.size) : 1    // Utiliser la taille si disponible
         };
 
-        const response = await fetch(`${API_URL}/orderProducts`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(orderProduct)
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        await api.post('/orderProducts', orderProduct);
       }
     } catch (error) {
       console.error('Erreur lors de l\'ajout des produits à la commande:', error);
@@ -66,6 +43,44 @@ export const OrdersService = {
         existingOrders[orderIndex].products = products;
         localStorage.setItem('orders', JSON.stringify(existingOrders));
       }
+    }
+  },
+
+  // Récupérer toutes les commandes
+  getAllOrders: async (): Promise<Order[]> => {
+    try {
+      const response = await api.get('/orders');
+      return response.data;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des commandes:', error);
+      // Fallback : récupérer depuis le localStorage
+      return JSON.parse(localStorage.getItem('orders') || '[]');
+    }
+  },
+
+  // Récupérer une commande par son ID
+  getOrderById: async (id: number): Promise<Order> => {
+    try {
+      const response = await api.get(`/orders/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Erreur lors de la récupération de la commande ${id}:`, error);
+      // Fallback : récupérer depuis le localStorage
+      const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+      const order = orders.find((o: Order) => o.id === id);
+      if (!order) throw new Error(`Commande avec l'ID ${id} non trouvée`);
+      return order;
+    }
+  },
+
+  // Mettre à jour le statut d'une commande
+  updateOrderStatus: async (id: number, status: string): Promise<Order> => {
+    try {
+      const response = await api.patch(`/orders/${id}/status`, { status });
+      return response.data;
+    } catch (error) {
+      console.error(`Erreur lors de la mise à jour du statut de la commande ${id}:`, error);
+      throw error;
     }
   }
 };

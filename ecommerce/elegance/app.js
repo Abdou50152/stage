@@ -17,6 +17,7 @@ const orderProductsRouter = require("./src/routers/orderProducts/orderProducts.r
 const colorsRouter = require("./src/routers/colors/colors.routes");
 const sizeRouter = require("./src/routers/size/size.routes");
 const productImagesRouter = require("./src/routers/productImages/productImages.routes");
+const authRouter = require("./src/routers/auth/auth.routes");
 const app = express();
 
 // Middlewares
@@ -37,6 +38,7 @@ app.use("/api/orderProducts", orderProductsRouter);
 app.use("/api/colors", colorsRouter);
 app.use("/api/size", sizeRouter);
 app.use("/api/productImages", productImagesRouter);
+app.use("/api/auth", authRouter);
 
 // Routes sans préfixe /api (pour les nouvelles intégrations)
 app.use("/categories", categoriesRouter);
@@ -48,6 +50,7 @@ app.use("/orderProducts", orderProductsRouter);
 app.use("/colors", colorsRouter);
 app.use("/size", sizeRouter);
 app.use("/productImages", productImagesRouter);
+app.use("/auth", authRouter);
 
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

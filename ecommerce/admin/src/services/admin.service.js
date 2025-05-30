@@ -4,7 +4,19 @@ export const AdminService = {
   // Login admin
   login: async (credentials) => {
     try {
-      const response = await api.post('/admin/login', credentials);
+      const response = await api.post('/auth/login', credentials);
+      
+      // Store token and user data in localStorage
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      }
+      
+      // Check if user is admin
+      if (response.data.user && response.data.user.role !== 'admin') {
+        throw new Error('Unauthorized: Admin access required');
+      }
+      
       return response.data;
     } catch (error) {
       console.error('Error logging in:', error);
@@ -15,7 +27,24 @@ export const AdminService = {
   // Get admin profile
   getProfile: async () => {
     try {
-      const response = await api.get('/admin/profile');
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      
+      const response = await api.get('/auth/profile', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      // Check if user is admin
+      if (response.data && response.data.role !== 'admin') {
+        throw new Error('Unauthorized: Admin access required');
+      }
+      
       return response.data;
     } catch (error) {
       console.error('Error fetching admin profile:', error);
@@ -86,6 +115,30 @@ export const AdminService = {
     } catch (error) {
       console.error('Error changing password:', error);
       throw error;
+    }
+  },
+  
+  // Logout admin
+  logout: () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    // Redirect to login page after logout
+    window.location.href = '/login';
+  },
+  
+  // Check if user is authenticated and is admin
+  isAuthenticated: () => {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
+    if (!token || !user) return false;
+    
+    try {
+      const userData = JSON.parse(user);
+      return userData.role === 'admin';
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+      return false;
     }
   }
 };

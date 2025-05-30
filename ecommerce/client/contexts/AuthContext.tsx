@@ -1,12 +1,16 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { getCookie } from 'cookies-next';
+import { getCookie, setCookie, deleteCookie } from 'cookies-next';
+import { UsersService } from '../services/users.service';
+import { User } from '../types/user';
 
 interface AuthContextType {
-  user: any;
+  user: User | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  loading: boolean;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -14,75 +18,84 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   logout: () => {},
   isAuthenticated: false,
+  loading: false,
+  isAdmin: false,
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     async function loadUser() {
       try {
+        setLoading(true);
         // Vérifier d'abord si un token existe
-        const token = getCookie('token');
+        const token = localStorage.getItem('token');
         if (!token) {
           console.log('Aucun token d\'authentification trouvé');
+          setLoading(false);
           return;
         }
         
         try {
-          const response = await fetch('http://localhost:3001/api/users/me', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          
-          if (response.ok) {
-            // Vérifier d'abord si la réponse est du JSON valide
-            const text = await response.text();
-            try {
-              const data = JSON.parse(text);
-              setUser(data);
-            } catch (parseError) {
-              console.log('Réponse non-JSON reçue:', text.substring(0, 100));
-            }
-          } else {
-            console.log('Erreur lors de la récupération du profil:', response.status);
+          // Utiliser le service utilisateur pour récupérer le profil
+          const userData = await UsersService.getUserProfile();
+          setUser(userData);
+          setIsAdmin(userData.role === 'admin');
+        } catch (error) {
+          console.log('Erreur lors de la récupération du profil:', error);
+          // Si l'API échoue, essayer de récupérer l'utilisateur du localStorage
+          const localUser = UsersService.getCurrentUser();
+          if (localUser) {
+            setUser(localUser);
+            setIsAdmin(localUser.role === 'admin');
           }
-        } catch (fetchError) {
-          // Gérer les erreurs de connexion au serveur
-          console.log('Erreur de connexion au serveur');
         }
       } catch (error) {
         console.error('Failed to load user', error);
+      } finally {
+        setLoading(false);
       }
     }
 
-    // Désactiver temporairement le chargement automatique de l'utilisateur
-    // tant que l'API n'est pas correctement configurée
-    // loadUser();
+    loadUser();
   }, []);
 
   const login = async (email: string, password: string) => {
-    const response = await fetch('http://localhost:3001/api/users/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-
-    if (response.ok) {
-      const userData = await response.json();
-      setUser(userData);
-      router.push('/profile');
-    } else {
-      throw new Error('Login failed');
+    try {
+      setLoading(true);
+      const response = await UsersService.login({ email, password });
+      setUser(response.user);
+      const isAdminUser = response.user.role === 'admin';
+      setIsAdmin(isAdminUser);
+      
+      // Stocker le token dans un cookie pour la persistance entre les sessions
+      setCookie('token', response.token, { maxAge: 60 * 60 * 24 * 7 }); // 7 jours
+      
+      // Rediriger vers l'interface d'administration si c'est un admin
+      if (isAdminUser) {
+        // Redirection vers l'interface d'administration
+        window.location.href = UsersService.getAdminUrl();
+      } else {
+        // Redirection vers le profil utilisateur normal
+        router.push('/profile');
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw new Error('Échec de la connexion. Veuillez vérifier vos identifiants.');
+    } finally {
+      setLoading(false);
     }
   };
 
   const logout = () => {
-    fetch('http://localhost:3001/api/users/logout', { method: 'POST' });
+    UsersService.logout();
     setUser(null);
-    router.push('/login');
+    deleteCookie('token');
+    router.push('/connexion');
   };
 
   return (
@@ -92,6 +105,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         login,
         logout,
         isAuthenticated: !!user,
+        loading,
+        isAdmin
       }}
     >
       {children}
