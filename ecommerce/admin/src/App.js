@@ -2,8 +2,7 @@
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
-import Header from "./components/Header";
-import Navigation from "./components/Navigation";
+import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import Articles from "./pages/Articles";
 import Orders from "./pages/Orders";
@@ -42,162 +41,96 @@ function App() {
     <NotificationProvider>
       <Router>
         <Routes>
-          {/* Public route for login */}
-          <Route path="/login" element={<Login />} />
+          {/* Redirect login page to dashboard */}
+          <Route path="/login" element={<Navigate to="/dashboard" replace />} />
 
           {/* Protected routes that require admin authentication */}
           <Route path="/" element={
             <AuthMiddleware>
-              <div className="flex flex-col min-h-screen">
-                <Header />
-                <div className="flex flex-1">
-                  <Navigation />
-                  <div className="container mx-auto px-4 py-6 flex-1">
-                    <Dashboard />
-                  </div>
-                </div>
-              </div>
+              <Layout>
+                <Dashboard />
+              </Layout>
             </AuthMiddleware>
           } />
 
           <Route path="/dashboard" element={
             <AuthMiddleware>
-              <div className="flex flex-col min-h-screen">
-                <Header />
-                <div className="flex flex-1">
-                  <Navigation />
-                  <div className="container mx-auto px-4 py-6 flex-1">
-                    <Dashboard />
-                  </div>
-                </div>
-              </div>
+              <Layout>
+                <Dashboard />
+              </Layout>
             </AuthMiddleware>
           } />
 
           {/* Other protected routes */}
           <Route path="/articles" element={
             <AuthMiddleware>
-              <div className="flex flex-col min-h-screen">
-                <Header />
-                <div className="flex flex-1">
-                  <Navigation />
-                  <div className="container mx-auto px-4 py-6 flex-1">
-                    <Articles />
-                  </div>
-                </div>
-              </div>
+              <Layout>
+                <Articles />
+              </Layout>
             </AuthMiddleware>
           } />
 
           <Route path="/products" element={
             <AuthMiddleware>
-              <div className="flex flex-col min-h-screen">
-                <Header />
-                <div className="flex flex-1">
-                  <Navigation />
-                  <div className="container mx-auto px-4 py-6 flex-1">
-                    <Products />
-                  </div>
-                </div>
-              </div>
+              <Layout>
+                <Products />
+              </Layout>
             </AuthMiddleware>
           } />
 
           <Route path="/categories" element={
             <AuthMiddleware>
-              <div className="flex flex-col min-h-screen">
-                <Header />
-                <div className="flex flex-1">
-                  <Navigation />
-                  <div className="container mx-auto px-4 py-6 flex-1">
-                    <Categories />
-                  </div>
-                </div>
-              </div>
+              <Layout>
+                <Categories />
+              </Layout>
             </AuthMiddleware>
           } />
 
           <Route path="/colors" element={
             <AuthMiddleware>
-              <div className="flex flex-col min-h-screen">
-                <Header />
-                <div className="flex flex-1">
-                  <Navigation />
-                  <div className="container mx-auto px-4 py-6 flex-1">
-                    <Colors />
-                  </div>
-                </div>
-              </div>
+              <Layout>
+                <Colors />
+              </Layout>
             </AuthMiddleware>
           } />
 
           <Route path="/sizes" element={
             <AuthMiddleware>
-              <div className="flex flex-col min-h-screen">
-                <Header />
-                <div className="flex flex-1">
-                  <Navigation />
-                  <div className="container mx-auto px-4 py-6 flex-1">
-                    <Sizes />
-                  </div>
-                </div>
-              </div>
+              <Layout>
+                <Sizes />
+              </Layout>
             </AuthMiddleware>
           } />
 
           <Route path="/orders" element={
             <AuthMiddleware>
-              <div className="flex flex-col min-h-screen">
-                <Header />
-                <div className="flex flex-1">
-                  <Navigation />
-                  <div className="container mx-auto px-4 py-6 flex-1">
-                    <Orders />
-                  </div>
-                </div>
-              </div>
+              <Layout>
+                <Orders />
+              </Layout>
             </AuthMiddleware>
           } />
 
           <Route path="/users" element={
             <AuthMiddleware>
-              <div className="flex flex-col min-h-screen">
-                <Header />
-                <div className="flex flex-1">
-                  <Navigation />
-                  <div className="container mx-auto px-4 py-6 flex-1">
-                    <Users />
-                  </div>
-                </div>
-              </div>
+              <Layout>
+                <Users />
+              </Layout>
             </AuthMiddleware>
           } />
 
           <Route path="/admins" element={
             <AuthMiddleware>
-              <div className="flex flex-col min-h-screen">
-                <Header />
-                <div className="flex flex-1">
-                  <Navigation />
-                  <div className="container mx-auto px-4 py-6 flex-1">
-                    <Admins />
-                  </div>
-                </div>
-              </div>
+              <Layout>
+                <Admins />
+              </Layout>
             </AuthMiddleware>
           } />
 
           <Route path="/admin" element={
             <AuthMiddleware>
-              <div className="flex flex-col min-h-screen">
-                <Header />
-                <div className="flex flex-1">
-                  <Navigation />
-                  <div className="container mx-auto px-4 py-6 flex-1">
-                    <Admin />
-                  </div>
-                </div>
-              </div>
+              <Layout>
+                <Admin />
+              </Layout>
             </AuthMiddleware>
           } />
 

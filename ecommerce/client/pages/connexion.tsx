@@ -20,12 +20,45 @@ export default function LoginPage() {
       });
 
       if (response.ok) {
-        router.push('/profile'); // Redirection après connexion
+        const data = await response.json();
+        
+        // Vérifier si c'est un admin
+        if (data.user && data.user.role === 'admin') {
+          // Rediriger vers le frontend admin
+          window.location.href = 'http://localhost:3002';
+        } else {
+          // Rediriger vers le profil utilisateur normal
+          router.push('/profile');
+        }
       } else {
         setError('Email ou mot de passe incorrect');
       }
     } catch (err) {
       setError('Une erreur est survenue');
+    }
+  };
+
+  // Fonction pour la connexion directe en tant qu'admin
+  const handleAdminLogin = async () => {
+    try {
+      // Appel à l'API avec les identifiants admin par défaut
+      const response = await fetch('/api/users/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: 'admin@example.com', 
+          password: 'admin123' 
+        }),
+      });
+
+      if (response.ok) {
+        // Rediriger vers le frontend admin
+        window.location.href = 'http://localhost:3002';
+      } else {
+        setError('Erreur de connexion admin');
+      }
+    } catch (err) {
+      setError('Une erreur est survenue lors de la connexion admin');
     }
   };
 
@@ -73,6 +106,16 @@ export default function LoginPage() {
           <Link href="/register" className="text-amber-700 hover:underline">
             Créer un compte
           </Link>
+        </div>
+        
+        <div className="mt-6 border-t pt-4">
+          <button
+            onClick={handleAdminLogin}
+            className="w-full bg-gray-800 text-white py-2 rounded hover:bg-gray-700"
+            type="button"
+          >
+            Accès Administrateur
+          </button>
         </div>
       </div>
     </Layout>

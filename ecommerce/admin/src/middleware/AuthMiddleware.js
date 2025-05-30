@@ -1,52 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { AdminService } from '../services/admin.service';
+import React from 'react';
 
-// Auth middleware component to protect admin routes
+// Auth middleware component - now bypasses authentication checks
 const AuthMiddleware = ({ children }) => {
-  const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // Check if user is authenticated and is admin
-        const isAuth = AdminService.isAuthenticated();
-        setIsAuthenticated(isAuth);
-
-        if (isAuth) {
-          // Verify token validity by fetching profile
-          await AdminService.getProfile();
-        }
-      } catch (error) {
-        console.error('Authentication error:', error);
-        setIsAuthenticated(false);
-        // Clear invalid authentication data
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      } finally {
-        setLoading(false);
-      }
+  // Auto-authenticate everyone without checks
+  // Set default admin data in localStorage if needed
+  if (!localStorage.getItem('user')) {
+    const defaultAdmin = {
+      id: 1,
+      email: 'admin@example.com',
+      full_name: 'Administrator',
+      role: 'admin'
     };
-
-    checkAuth();
-  }, []);
-
-  if (loading) {
-    // Show loading indicator while checking authentication
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
+    localStorage.setItem('user', JSON.stringify(defaultAdmin));
+    localStorage.setItem('token', 'bypass-auth-token');
   }
 
-  // Redirect to login if not authenticated
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  // Render children if authenticated
+  // Always render children without authentication check
   return children;
 };
 

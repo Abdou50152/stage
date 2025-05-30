@@ -79,21 +79,37 @@ const Navigation = () => {
   };
 
   return (
-    <nav className="bg-gray-800 text-white w-64 min-h-screen p-4">
-      <div className="mt-6">
+    <nav className="bg-gray-900 text-white w-64 md:w-64 min-h-screen p-4 shadow-lg overflow-y-auto">
+      <div className="mt-2">
+        {/* Logo ou titre pour mobile */}
+        <div className="md:hidden mb-4 pb-2 border-b border-gray-700">
+          <div className="flex items-center justify-center">
+            <svg className="w-8 h-8 text-amber-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z" />
+            </svg>
+            <span className="ml-2 text-lg font-semibold">ELEGANCE NEZHA</span>
+          </div>
+        </div>
+        
         <ul>
           {navItems.map((item) => (
             <li key={item.path} className="mb-2">
               <Link
                 to={item.path}
-                className={`flex items-center p-2 rounded-md ${isActive(item.path) ? 'bg-blue-600' : 'hover:bg-gray-700'}`}
+                className={`flex items-center p-3 rounded-md transition-all duration-200 ${isActive(item.path) ? 'bg-amber-700 text-white' : 'hover:bg-gray-800 text-gray-300 hover:text-white'}`}
               >
                 <span className="mr-3">{renderIcon(item.icon)}</span>
-                {item.name}
+                <span className="text-sm md:text-base">{item.name}</span>
               </Link>
             </li>
           ))}
         </ul>
+        
+        {/* Informations de version en bas de la navigation */}
+        <div className="mt-8 pt-4 border-t border-gray-700 text-xs text-gray-500 text-center">
+          <p>Version 1.0</p>
+          <p className="mt-1">© 2025 ELEGANCE NEZHA</p>
+        </div>
       </div>
     </nav>
   );

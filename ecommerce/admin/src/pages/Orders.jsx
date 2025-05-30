@@ -157,12 +157,7 @@ const Orders = () => {
               </button>
             </>
           )}
-          <button
-            onClick={() => confirmDelete(order)}
-            className="px-3 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700 transition"
-          >
-            Delete
-          </button>
+          {/* Bouton Delete supprimé */}
         </div>
       )
     }
@@ -183,6 +178,7 @@ const Orders = () => {
             columns={columns}
             data={orders}
             emptyMessage="No orders available"
+         
           />
         </div>
       )}
