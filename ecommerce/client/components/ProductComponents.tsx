@@ -34,7 +34,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
         <Link href={`/produits/${product.id}`}>
           <div className="relative h-64 bg-gray-200">
             <img 
-              src={`/api/placeholder/400/400?text=${product.name}`} 
+              src={`http://localhost:3001/api/placeholder/400/400?text=${product.name}`} 
               alt={product.name} 
               className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300"
             />
@@ -145,7 +145,7 @@ export const sampleProducts: Product[] = [
     name: "Hijab Premium Coton",
     price: 19.99,
     category: "hijabs",
-    image: "/products/hijab-1.jpg",
+    image: "http://localhost:3001/uploads/products/hijab-1.jpg",
     rating: 5,
     inStock: true,
     colors: ["Blanc", "Noir", "Bleu ciel", "Rose pâle"]
@@ -156,7 +156,7 @@ export const sampleProducts: Product[] = [
     price: 24.99,
     originalPrice: 29.99,
     category: "foulards",
-    image: "/products/foulard-1.jpg",
+    image: "http://localhost:3001/uploads/products/foulard-1.jpg",
     rating: 4,
     inStock: true,
     isSale: true,
@@ -167,7 +167,7 @@ export const sampleProducts: Product[] = [
     name: "Robe Longue Festive",
     price: 89.99,
     category: "robes",
-    image: "/products/robe-2.jpg",
+    image: "http://localhost:3001/uploads/products/robe-2.jpg",
     rating: 5,
     inStock: true,
     colors: ["Noir", "Rouge", "Bleu royal"],
@@ -178,7 +178,7 @@ export const sampleProducts: Product[] = [
     name: "Hijab Mousseline",
     price: 15.99,
     category: "hijabs",
-    image: "/products/hijab-2.jpg",
+    image: "http://localhost:3001/uploads/products/hijab-2.jpg",
     rating: 4,
     inStock: true,
     colors: ["Blanc", "Beige", "Gris", "Noir"]
@@ -188,7 +188,7 @@ export const sampleProducts: Product[] = [
     name: "Foulard Imprimé Floral",
     price: 22.99,
     category: "foulards",
-    image: "/products/foulard-2.jpg",
+    image: "http://localhost:3001/uploads/products/foulard-2.jpg",
     rating: 4,
     inStock: false,
     colors: ["Multicolore"]
@@ -198,7 +198,7 @@ export const sampleProducts: Product[] = [
     name: "Robe Casual Quotidienne",
     price: 54.99,
     category: "robes",
-    image: "/products/robe-3.jpg",
+    image: "http://localhost:3001/uploads/products/robe-3.jpg",
     rating: 3,
     inStock: true,
     colors: ["Bleu marine", "Vert forêt", "Bordeaux"],
@@ -209,7 +209,7 @@ export const sampleProducts: Product[] = [
     name: "Hijab Jersey Premium",
     price: 22.99,
     category: "hijabs",
-    image: "/products/hijab-3.jpg",
+    image: "http://localhost:3001/uploads/products/hijab-3.jpg",
     rating: 5,
     inStock: true,
     isNew: true,

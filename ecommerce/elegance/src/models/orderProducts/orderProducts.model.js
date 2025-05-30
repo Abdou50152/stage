@@ -1,41 +1,56 @@
 const db = require("..");
 const httpError = require("http-errors");
 
-const orderProducts = db.orderProducts;
+const orderProductsTable = db.orderProducts;
 
 // Créer une entrée dans orders_products
-const createOrderProducts = async (neworderProducts) => {
-  const existingEntry = await orderProducts.findOne({
-    where: {
-      order_id: neworderProducts.order_id,
-      product_id: neworderProducts.products_id,
-    },
-  });
+const createOrderProducts = async (newOrderProduct) => {
+  try {
+    // Adapter les noms de champs si nécessaire
+    const orderData = {
+      order_id: newOrderProduct.orderId,
+      product_id: newOrderProduct.productId,
+      quantity: newOrderProduct.quantity,
+      price: newOrderProduct.price
+    };
 
-  if (existingEntry) {
-    throw httpError.Conflict("This product is already in the order");
+    // Vérifier si le produit existe déjà dans la commande
+    const existingEntry = await orderProductsTable.findOne({
+      where: {
+        order_id: orderData.order_id,
+        product_id: orderData.product_id,
+      },
+    });
+
+    if (existingEntry) {
+      throw httpError.Conflict("This product is already in the order");
+    }
+
+    // Créer l'entrée dans la base de données
+    const createdProduct = await orderProductsTable.create(orderData);
+    return createdProduct;
+  } catch (error) {
+    console.error('Erreur dans createOrderProducts:', error);
+    throw error;
   }
-
-  const orderProducts = await orderProducts.create(neworderProducts);
-  return orderProducts;
 };
 
 // Récupérer tous les order_products (avec pagination)
 const getAllOrderProducts = async (skip = 0, limit = 10) => {
-  const listPromise = orderProducts.findAll({
+  const listPromise = orderProductsTable.findAll({
     offset: skip,
     limit: limit,
   });
 
-  const countPromise = orderProducts.count();
+  const countPromise = orderProductsTable.count();
 
-  const [orderProducts, count] = await Promise.all([listPromise, countPromise]);
-  return { count, orderProducts };
+  const [products, count] = await Promise.all([listPromise, countPromise]);
+  return { count, products };
 };
 
 // Récupérer un order_product spécifique
 const getOrderProductsById = async (id) => {
-  const entry = await orderProducts.findOne({
+  const entry = await orderProductsTable.findOne({
     where: { id },
   });
 
@@ -53,7 +68,7 @@ const updateOrderProducts = async (newData) => {
     throw httpError.NotFound("Order product entry does not exist");
   }
 
-  await OrderProducts.update(newData, {
+  await orderProductsTable.update(newData, {
     where: { id: newData.id },
   });
 
@@ -62,12 +77,12 @@ const updateOrderProducts = async (newData) => {
 
 // Supprimer une entrée order_product
 const deleteOrderProductsById = async (id) => {
-  const existing = await orderProducts.findOne({ where: { id } });
+  const existing = await orderProductsTable.findOne({ where: { id } });
   if (!existing) {
     throw httpError.NotFound("Order product entry does not exist");
   }
 
-  await orderProducts.destroy({ where: { id } });
+  await orderProductsTable.destroy({ where: { id } });
 };
 
 module.exports = {

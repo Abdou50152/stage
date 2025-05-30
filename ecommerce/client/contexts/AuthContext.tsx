@@ -23,20 +23,48 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     async function loadUser() {
       try {
-        const response = await fetch('/api/auth/me');
-        if (response.ok) {
-          setUser(await response.json());
+        // Vérifier d'abord si un token existe
+        const token = getCookie('token');
+        if (!token) {
+          console.log('Aucun token d\'authentification trouvé');
+          return;
+        }
+        
+        try {
+          const response = await fetch('http://localhost:3001/api/users/me', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (response.ok) {
+            // Vérifier d'abord si la réponse est du JSON valide
+            const text = await response.text();
+            try {
+              const data = JSON.parse(text);
+              setUser(data);
+            } catch (parseError) {
+              console.log('Réponse non-JSON reçue:', text.substring(0, 100));
+            }
+          } else {
+            console.log('Erreur lors de la récupération du profil:', response.status);
+          }
+        } catch (fetchError) {
+          // Gérer les erreurs de connexion au serveur
+          console.log('Erreur de connexion au serveur');
         }
       } catch (error) {
         console.error('Failed to load user', error);
       }
     }
 
-    loadUser();
+    // Désactiver temporairement le chargement automatique de l'utilisateur
+    // tant que l'API n'est pas correctement configurée
+    // loadUser();
   }, []);
 
   const login = async (email: string, password: string) => {
-    const response = await fetch('/api/auth/login', {
+    const response = await fetch('http://localhost:3001/api/users/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -52,7 +80,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = () => {
-    fetch('/api/auth/logout', { method: 'POST' });
+    fetch('http://localhost:3001/api/users/logout', { method: 'POST' });
     setUser(null);
     router.push('/login');
   };

@@ -8,12 +8,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { email, password } = req.body;
 
-  // Ici, vous devriez vérifier les credentials dans votre base de données
-  // Ceci est un exemple simplifié
-  if (email === 'test@example.com' && password === 'password') {
-    setCookie('token', 'fake-jwt-token', { req, res, maxAge: 60 * 60 * 24 });
-    return res.status(200).json({ success: true });
-  }
+  try {
+    // Appel au backend (elegance) pour l'authentification
+    const response = await fetch('http://localhost:3001/api/users/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email,
+        password
+      })
+    });
 
-  return res.status(401).json({ message: 'Invalid credentials' });
+    // Convertir la réponse en JSON
+    const responseData = await response.json();
+
+    // Si l'authentification réussit, stocker le token
+    if (responseData && responseData.token) {
+      setCookie('token', responseData.token, { req, res, maxAge: 60 * 60 * 24 });
+      return res.status(200).json({ success: true, user: responseData.user });
+    }
+
+    return res.status(200).json(responseData);
+  } catch (error) {
+    console.error('Login error:', error);
+    return res.status(500).json({
+      message: 'Une erreur est survenue lors de la connexion'
+    });
+  }
 }

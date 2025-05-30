@@ -4,11 +4,30 @@ export const OrdersService = {
   // Get all orders
   getAllOrders: async (skip = 0, limit = 10) => {
     try {
-      const response = await api.get(`/orders?skip=${skip}&limit=${limit}`);
-      return response.data;
+      // D'abord, essayer d'obtenir les commandes depuis l'API
+      try {
+        const response = await api.get(`/orders?skip=${skip}&limit=${limit}`);
+        return response.data;
+      } catch (apiError) {
+        console.warn('API error, using localStorage as fallback:', apiError);
+        
+        // Si l'API échoue, utiliser les commandes du localStorage
+        const localOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+        
+        // Convertir au format attendu par l'admin
+        return {
+          count: localOrders.length,
+          orders: localOrders.map((order, index) => ({
+            id: index + 1,
+            ...order,
+            createdAt: new Date(order.date).toLocaleString(),
+            updatedAt: new Date(order.date).toLocaleString()
+          }))
+        };
+      }
     } catch (error) {
       console.error('Error fetching orders:', error);
-      throw error;
+      return { count: 0, orders: [] }; // Retourner un objet vide plutôt que de lancer une erreur
     }
   },
 

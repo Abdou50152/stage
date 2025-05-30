@@ -80,7 +80,7 @@ const ProductDetailPage = () => {
         <div>
           <div className="bg-gray-100 rounded-lg overflow-hidden mb-4 aspect-square">
             <img 
-              src={product.image || `/api/placeholder/800/800?text=${product.name}`} 
+              src={product.image || `http://localhost:3001/api/placeholder/800/800?text=${product.name}`} 
               alt={product.name} 
               className="w-full h-full object-cover"
             />
@@ -90,7 +90,7 @@ const ProductDetailPage = () => {
             {[...Array(4)].map((_, index) => (
               <div key={index} className="bg-gray-100 rounded-lg overflow-hidden aspect-square">
                 <img 
-                  src={`/api/placeholder/200/200?text=Vue ${index + 1}`} 
+                  src={`http://localhost:3001/api/placeholder/200/200?text=Vue ${index + 1}`} 
                   alt={`${product.name} vue ${index + 1}`} 
                   className="w-full h-full object-cover"
                 />

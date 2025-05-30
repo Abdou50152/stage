@@ -5,7 +5,7 @@ const morgan = require("morgan");
 const path = require("path");
 require("dotenv").config();
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 
 // routers path
 const categoriesRouter = require("./src/routers/categories/categories.routes");
@@ -26,15 +26,28 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(morgan("combined"));
 
 // Routes
+// Configuration avec double route pour assurer la compatibilité
+// Routes avec préfixe /api (pour la compatibilité rétroactive)
 app.use("/api/categories", categoriesRouter);
 app.use("/api/products", productsRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/orders", ordersRouter);
-app.use("/api/orderProducts",orderProductsRouter);
-app.use("/api/colors",colorsRouter);
-app.use("/api/size",sizeRouter);
+app.use("/api/orderProducts", orderProductsRouter);
+app.use("/api/colors", colorsRouter);
+app.use("/api/size", sizeRouter);
 app.use("/api/productImages", productImagesRouter);
+
+// Routes sans préfixe /api (pour les nouvelles intégrations)
+app.use("/categories", categoriesRouter);
+app.use("/products", productsRouter);
+app.use("/admin", adminRouter);
+app.use("/users", usersRouter);
+app.use("/orders", ordersRouter);
+app.use("/orderProducts", orderProductsRouter);
+app.use("/colors", colorsRouter);
+app.use("/size", sizeRouter);
+app.use("/productImages", productImagesRouter);
 
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
