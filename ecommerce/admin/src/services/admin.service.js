@@ -34,11 +34,8 @@ export const AdminService = {
         throw new Error('No authentication token found');
       }
       
-      const response = await api.get('/auth/profile', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      // L'intercepteur ajoutera automatiquement le token
+      const response = await api.get('/auth/profile');
       
       // Check if user is admin
       if (response.data && response.data.role !== 'admin') {
