@@ -2,6 +2,12 @@ const adminModel = (sequileze, DataTypes) => {
     const admin = sequileze.define(
       "admin",
           {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey:true,
+        autoIncrement: true
+       
+      },
      full_name: {
     type: DataTypes.STRING,
     allowNull: false

@@ -2,6 +2,13 @@ const productsModel = (sequileze, DataTypes) => {
     const Products = sequileze.define(
       "product",
           {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey:true,
+              autoIncrement: true
+             
+            },
+      
       stock : {
          type : DataTypes.DOUBLE,
          allowNull: true,

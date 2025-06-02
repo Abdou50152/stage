@@ -1,23 +1,60 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Layout from '../components/Layout';
-import { ProductGrid, sampleProducts } from '../components/ProductComponents';
+import { ProductGrid } from '../components/ProductComponents';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import api from '../utils/api';
 
 const HomePage = () => {
-  // Filtrer les produits en vedette ou nouveaux
-  const featuredProducts = sampleProducts.filter((product) => product.isNew || product.isSale).slice(0, 4);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  
+  // Récupérer tous les produits depuis l'API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get('/products');
+        const productsData = response.data.products || response.data;
+        setProducts(productsData);
+      } catch (err) {
+        console.error('Erreur lors de la récupération des produits:', err);
+        setError('Impossible de charger les produits. Veuillez réessayer plus tard.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProducts();
+  }, []);
+  
+  // Filtrer les produits en vedette (les 4 premiers pour l'instant)
+  const featuredProducts = products.slice(0, 4);
   
   // Filtrer les produits par catégorie
-  const robes = sampleProducts.filter((product) => product.category === 'robes').slice(0, 4);
-  const Accesories = sampleProducts.filter((product) => product.category === 'Accesories').slice(0, 4);
-  const foulards = sampleProducts.filter((product) => product.category === 'foulards').slice(0, 4);
+  const robes = products.filter(product => {
+    const categoryId = product.categorieId;
+    const categoryName = product.categorie?.name?.toLowerCase();
+    return categoryId === 1 || categoryName === 'robe' || categoryName === 'robes';
+  }).slice(0, 4);
+  
+  const Accesories = products.filter(product => {
+    const categoryId = product.categorieId;
+    const categoryName = product.categorie?.name?.toLowerCase();
+    return categoryId === 3 || categoryName === 'accessoire' || categoryName === 'accessoires';
+  }).slice(0, 4);
+  
+  const foulards = products.filter(product => {
+    const categoryId = product.categorieId;
+    const categoryName = product.categorie?.name?.toLowerCase();
+    return categoryId === 2 || categoryName === 'foulard' || categoryName === 'foulards';
+  }).slice(0, 4);
   
   // Images du carrousel
   const carouselImages = [
     '/images/bg/bg.jpg',
     '/images/bg/bg1.jpg',
-    
   ];
   
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -169,7 +206,13 @@ const HomePage = () => {
             <p className="text-gray-600 mt-2">Nos produits les plus populaires</p>
           </div>
         </div>
-        <ProductGrid products={sampleProducts.slice(0, 8)} />
+        {loading ? (
+          <div className="text-center py-8">Chargement des produits...</div>
+        ) : error ? (
+          <div className="text-center py-8 text-red-500">{error}</div>
+        ) : (
+          <ProductGrid products={products.slice(0, 8)} />
+        )}
       </section>
       
       {/* Newsletter */}

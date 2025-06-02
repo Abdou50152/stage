@@ -2,6 +2,12 @@ const orderModel = (sequelize, DataTypes) => {
   const order = sequelize.define(
     "orders",
     {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey:true,
+        autoIncrement: true
+       
+      },
       reference: {
         type: DataTypes.STRING,
         allowNull: false,

@@ -1,21 +1,105 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
-import { ProductGrid, sampleProducts } from '../../components/ProductComponents';
+import { ProductGrid, Product } from '../../components/ProductComponents';
 import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
+import api from '../../utils/api';
 
 const RobesPage = () => {
-  // Filtrer uniquement les robes
-  const robesProducts = sampleProducts.filter(product => product.category === 'robes');
-  
-  // État pour les filtres
-  const [priceRange, setPriceRange] = useState([0, 200]);
+  // État pour les produits et filtres
+  const [products, setProducts] = useState<Product[]>([]);
+  const [robesProducts, setRobesProducts] = useState<Product[]>([]);
+  const [priceRange, setPriceRange] = useState([0, 500]);
   const [selectedColors, setSelectedColors] = useState([]);
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [sortBy, setSortBy] = useState('popular');
   const [showFilters, setShowFilters] = useState(false);
+  const [loading, setLoading] = useState(true);
+  
+  // Récupérer les produits depuis l'API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get('/products');
+        console.log('Tous les produits de l\'API:', response.data);
+        
+        const apiProducts = response.data.products.map(p => {
+          // Afficher les données brutes de chaque produit pour déboguer
+          console.log('Produit brut:', p);
+          console.log('Catégorie du produit:', p.categorieId, typeof p.categorieId);
+          
+          return {
+            id: p.id,
+            name: p.name,
+            price: p.price,
+            originalPrice: p.originalPrice,
+            category: p.categorieId, // Adapter selon votre API
+            image: p.imageUrl ? `http://localhost:3001${p.imageUrl}` : `http://localhost:3001/api/placeholder/400/400?text=${p.name}`,
+            rating: 5, // Valeur par défaut si non disponible
+            inStock: p.stock > 0,
+            isNew: new Date(p.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Produit créé dans les 7 derniers jours
+            isSale: p.originalPrice && p.originalPrice > p.price,
+            colors: p.colors ? (Array.isArray(p.colors) ? p.colors.map(c => {
+              if (typeof c === 'string') {
+                try {
+                  const parsed = JSON.parse(c);
+                  return parsed.name;
+                } catch (e) {
+                  console.error('Erreur de parsing JSON pour la couleur:', c, e);
+                  return '';
+                }
+              }
+              return c.name || '';
+            }).filter(Boolean) : []) : [],
+            sizes: p.sizes ? (Array.isArray(p.sizes) ? p.sizes.map(s => {
+              if (typeof s === 'string') {
+                try {
+                  const parsed = JSON.parse(s);
+                  return parsed.name;
+                } catch (e) {
+                  console.error('Erreur de parsing JSON pour la taille:', s, e);
+                  return '';
+                }
+              }
+              return s.name || '';
+            }).filter(Boolean) : []) : [],
+            description: p.description
+          };
+        });
+        
+        setProducts(apiProducts);
+        
+        // Filtrer uniquement les robes (catégorie avec ID 'robe' ou 'robes')
+        const robes = apiProducts.filter(product => {
+          // Afficher dans la console pour déboguer
+          console.log('Vérification catégorie:', product.name, product.category);
+          
+          // Vérifier toutes les possibilités de nommage de catégorie
+          return (
+            product.category === 'Robe' || 
+            product.category === 'robe' || 
+            product.category === 'Robes' || 
+            product.category === 'robes' || 
+            product.category === 1 || // Si votre API utilise des IDs numériques
+            (typeof product.category === 'string' && 
+              product.category.toLowerCase().includes('robe'))
+          );
+        });
+        
+        console.log('Produits filtrés (robes):', robes);
+        setRobesProducts(robes);
+        setLoading(false);
+      } catch (error) {
+        console.error('Erreur lors du chargement des produits:', error);
+        setLoading(false);
+      }
+    };
+    
+    fetchProducts();
+  }, []);
   
   // Options disponibles
-  const colors = ['Noir', 'Blanc', 'Bleu', 'Rouge', 'Rose', 'Beige'];
+  const colors = ['Noir', 'Blanc', 'Beige', 'Rose', 'Bleu', 'Rouge', 'Vert'];
   const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
   
   // Gestion des filtres
@@ -48,6 +132,20 @@ const RobesPage = () => {
     return matchesPrice && matchesColor && matchesSize;
   });
   
+  // Afficher un message de chargement pendant le chargement des produits
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container mx-auto py-8">
+          <h1 className="text-3xl font-bold mb-8">Robes</h1>
+          <div className="flex justify-center items-center h-64">
+            <p className="text-lg text-gray-600">Chargement des produits...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+  
   // Tri des produits
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortBy) {
@@ -68,10 +166,10 @@ const RobesPage = () => {
         {/* Bannière de catégorie */}
         <div className="relative h-60 md:h-80 rounded-lg overflow-hidden mb-8">
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40"></div>
-          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/images/categories/abaya.png')" }}></div>
+          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/images/categories/robe.png')" }}></div>
           <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-4">
-            <h1 className="text-3xl md:text-5xl font-bold mb-2">Abayas & Robes</h1>
-            <p className="text-lg md:text-xl max-w-2xl">Élégance et modestie pour chaque occasion</p>
+            <h1 className="text-3xl md:text-5xl font-bold mb-2">Robes</h1>
+            <p className="text-lg md:text-xl max-w-2xl">Élégance et style pour chaque occasion</p>
           </div>
         </div>
         
@@ -196,7 +294,7 @@ const RobesPage = () => {
                 <p className="text-gray-500">Aucun produit ne correspond à vos critères de recherche.</p>
                 <button 
                   onClick={() => {
-                    setPriceRange([0, 200]);
+                    setPriceRange([0, 500]);
                     setSelectedColors([]);
                     setSelectedSizes([]);
                   }}

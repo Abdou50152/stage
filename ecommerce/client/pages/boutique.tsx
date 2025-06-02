@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { ProductGrid, sampleProducts, Product } from '../components/ProductComponents';
+import { ProductGrid, Product } from '../components/ProductComponents';
 import { Sliders, ChevronDown, X } from 'lucide-react';
+import api from '../utils/api';
 
 const ShopPage = () => {
-  const [products, setProducts] = useState<Product[]>(sampleProducts);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(sampleProducts);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [filters, setFilters] = useState({
     category: '',
     priceRange: { min: 0, max: 100 },
@@ -22,9 +23,41 @@ const ShopPage = () => {
   const allColors = Array.from(new Set(products.flatMap(p => p.colors || [])));
   const allSizes = Array.from(new Set(products.flatMap(p => p.sizes || [])));
   
+  // Charger les produits depuis l'API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await api.get('/products');
+        const apiProducts = response.data.products.map(p => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          originalPrice: p.originalPrice,
+          category: p.categorieId, // Adapter selon votre API
+          image: p.images && p.images.length > 0 ? `http://localhost:3001${p.images[0].url}` : `http://localhost:3001/api/placeholder/400/400?text=${p.name}`,
+          rating: 5, // Valeur par défaut si non disponible
+          inStock: p.stock > 0,
+          isNew: new Date(p.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Produit créé dans les 7 derniers jours
+          isSale: p.originalPrice && p.originalPrice > p.price,
+          colors: p.colors ? p.colors.map(c => c.name) : [],
+          sizes: p.sizes ? p.sizes.map(s => s.name) : [],
+          description: p.description
+        }));
+        setProducts(apiProducts);
+        setFilteredProducts(apiProducts);
+      } catch (error) {
+        console.error('Erreur lors du chargement des produits:', error);
+      }
+    };
+    
+    fetchProducts();
+  }, []);
+  
   // Appliquer les filtres
   useEffect(() => {
-    let result = [...sampleProducts];
+    if (products.length === 0) return;
+    
+    let result = [...products];
     
     // Filtre par catégorie
     if (filters.category) {

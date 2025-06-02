@@ -6,24 +6,39 @@ const orderProductsTable = db.orderProducts;
 // Créer une entrée dans orders_products
 const createOrderProducts = async (newOrderProduct) => {
   try {
-    // Adapter les noms de champs si nécessaire
+    // Validate required fields
+    const { orderId, productId, quantity, price, sizeId, colorId } = newOrderProduct;
+    if (orderId === undefined || productId === undefined || quantity === undefined || price === undefined || sizeId === undefined || colorId === undefined) {
+      throw httpError.BadRequest(
+        'Missing required fields. Ensure orderId, productId, quantity, price, sizeId, and colorId are provided.'
+      );
+    }
+
     const orderData = {
-      order_id: newOrderProduct.orderId,
-      product_id: newOrderProduct.productId,
+      orderId: newOrderProduct.orderId,
+      productId: newOrderProduct.productId,
       quantity: newOrderProduct.quantity,
-      price: newOrderProduct.price
+      price: newOrderProduct.price,
+      sizeId: newOrderProduct.sizeId,
+      colorId: newOrderProduct.colorId
     };
 
-    // Vérifier si le produit existe déjà dans la commande
+    // Vérifier si le produit (avec la même taille et couleur) existe déjà dans la commande
     const existingEntry = await orderProductsTable.findOne({
       where: {
-        order_id: orderData.order_id,
-        product_id: orderData.product_id,
+        orderId: orderData.orderId,     // Corrected field name
+        productId: orderData.productId, // Corrected field name
+        sizeId: orderData.sizeId,       // Added for more specific check
+        colorId: orderData.colorId      // Added for more specific check
       },
     });
 
     if (existingEntry) {
-      throw httpError.Conflict("This product is already in the order");
+      // If the exact product variant is already in the order, throw a conflict error.
+      // Alternatively, you might want to update the quantity of the existing entry.
+      throw httpError.Conflict(
+        "This product with the specified size and color is already in the order"
+      );
     }
 
     // Créer l'entrée dans la base de données
@@ -31,7 +46,12 @@ const createOrderProducts = async (newOrderProduct) => {
     return createdProduct;
   } catch (error) {
     console.error('Erreur dans createOrderProducts:', error);
-    throw error;
+    // If the error is already an HttpError (like the Conflict above), re-throw it.
+    if (error instanceof httpError.HttpError) {
+        throw error;
+    }
+    // For other types of errors, throw a generic internal server error.
+    throw httpError.InternalServerError("Failed to create order product entry. Please check server logs.");
   }
 };
 

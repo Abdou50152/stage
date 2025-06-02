@@ -1,6 +1,19 @@
 import api from './api';
 
 export const AdminService = {
+  // Logout admin
+  logout: () => {
+    try {
+      // Clear localStorage
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Redirect to login page
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  },
   // Login admin
   login: async (credentials) => {
     try {

@@ -56,13 +56,30 @@ const Categories = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Validation des données
+    if (!formData.name || formData.name.trim() === '') {
+      showNotification('Le nom de la catégorie est obligatoire', 'error');
+      return;
+    }
+    
+    // Préparation des données
+    const categoryData = {
+      name: formData.name.trim(),
+      description: formData.description.trim(),
+      // Générer un slug si non fourni
+      slug: formData.slug.trim() || formData.name.trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '')
+    };
+    
     try {
       if (isEditing && selectedCategory) {
-        await CategoriesService.updateCategory(selectedCategory.id, formData);
-        showNotification('Category updated successfully', 'success');
+        await CategoriesService.updateCategory(selectedCategory.id, categoryData);
+        showNotification('Catégorie mise à jour avec succès', 'success');
       } else {
-        await CategoriesService.createCategory(formData);
-        showNotification('Category created successfully', 'success');
+        await CategoriesService.createCategory(categoryData);
+        showNotification('Catégorie créée avec succès', 'success');
       }
       
       fetchCategories();
@@ -70,7 +87,16 @@ const Categories = () => {
       resetForm();
     } catch (error) {
       console.error('Error saving category:', error);
-      showNotification('Failed to save category', 'error');
+      
+      // Afficher un message d'erreur plus précis
+      if (error.response && error.response.data && error.response.data.errors) {
+        const errorMessages = error.response.data.errors.map(err => err.msg).join(', ');
+        showNotification(`Erreur: ${errorMessages}`, 'error');
+      } else if (error.response && error.response.data && error.response.data.message) {
+        showNotification(`Erreur: ${error.response.data.message}`, 'error');
+      } else {
+        showNotification('Impossible d\'enregistrer la catégorie', 'error');
+      }
     }
   };
 

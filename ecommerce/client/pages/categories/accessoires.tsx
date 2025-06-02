@@ -1,17 +1,88 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
-import { ProductGrid, sampleProducts } from '../../components/ProductComponents';
+import { ProductGrid, Product } from '../../components/ProductComponents';
 import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
+import api from '../../utils/api';
 
 const AccessoiresPage = () => {
-  // Filtrer uniquement les accessoires
-  const accessoiresProducts = sampleProducts.filter(product => product.category === 'Accesories');
-  
-  // État pour les filtres
+  // État pour les produits et filtres
+  const [products, setProducts] = useState<Product[]>([]);
+  const [accessoiresProducts, setAccessoiresProducts] = useState<Product[]>([]);
   const [priceRange, setPriceRange] = useState([0, 200]);
   const [selectedColors, setSelectedColors] = useState([]);
   const [sortBy, setSortBy] = useState('popular');
   const [showFilters, setShowFilters] = useState(false);
+  const [loading, setLoading] = useState(true);
+  
+  // Récupérer les produits depuis l'API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get('/products');
+        const apiProducts = response.data.products.map(p => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          originalPrice: p.originalPrice,
+          category: p.categorieId, // Adapter selon votre API
+          image: p.imageUrl ? `http://localhost:3001${p.imageUrl}` : `http://localhost:3001/api/placeholder/400/400?text=${p.name}`,
+          rating: 5, // Valeur par défaut si non disponible
+          inStock: p.stock > 0,
+          isNew: new Date(p.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Produit créé dans les 7 derniers jours
+          isSale: p.originalPrice && p.originalPrice > p.price,
+          colors: p.colors ? (Array.isArray(p.colors) ? p.colors.map(c => {
+            if (typeof c === 'string') {
+              try {
+                const parsed = JSON.parse(c);
+                return parsed.name;
+              } catch (e) {
+                console.error('Erreur de parsing JSON pour la couleur:', c, e);
+                return '';
+              }
+            }
+            return c.name || '';
+          }).filter(Boolean) : []) : [],
+          sizes: p.sizes ? (Array.isArray(p.sizes) ? p.sizes.map(s => {
+            if (typeof s === 'string') {
+              try {
+                const parsed = JSON.parse(s);
+                return parsed.name;
+              } catch (e) {
+                console.error('Erreur de parsing JSON pour la taille:', s, e);
+                return '';
+              }
+            }
+            return s.name || '';
+          }).filter(Boolean) : []) : [],
+          description: p.description
+        }));
+        
+        setProducts(apiProducts);
+        // Filtrer uniquement les accessoires
+        const accessoires = apiProducts.filter(product => {
+          // Afficher dans la console pour déboguer
+          console.log('Produit catégorie:', product.name, product.category);
+          
+          return product.category === 'Accessoires' || 
+            product.category === 'accessoires' || 
+            product.category === 'Accesories' || 
+            product.category === 'accesories' || 
+            product.category === 3 || // Si votre API utilise des IDs numériques
+            (typeof product.category === 'string' && 
+              (product.category.toLowerCase().includes('access') || 
+               product.category.toLowerCase() === 'accessoires'));
+        });
+        setAccessoiresProducts(accessoires);
+        setLoading(false);
+      } catch (error) {
+        console.error('Erreur lors du chargement des produits:', error);
+        setLoading(false);
+      }
+    };
+    
+    fetchProducts();
+  }, []);
   
   // Options disponibles
   const colors = ['Doré', 'Argent', 'Noir', 'Blanc', 'Rose', 'Multicolore'];
@@ -34,6 +105,20 @@ const AccessoiresPage = () => {
     
     return matchesPrice && matchesColor;
   });
+  
+  // Afficher un message de chargement pendant le chargement des produits
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container mx-auto py-8">
+          <h1 className="text-3xl font-bold mb-8">Accessoires</h1>
+          <div className="flex justify-center items-center h-64">
+            <p className="text-lg text-gray-600">Chargement des produits...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
   
   // Tri des produits
   const sortedProducts = [...filteredProducts].sort((a, b) => {

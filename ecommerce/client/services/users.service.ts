@@ -110,19 +110,43 @@ export const UsersService = {
   getUserOrders: async () => {
     try {
       const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found');
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      
+      // Si l'utilisateur est authentifié, essayer de récupérer ses commandes
+      if (token && user && user.id) {
+        try {
+          // Essayer d'abord avec l'endpoint spécifique aux utilisateurs
+          const response = await api.get(`/users/${user.id}/orders`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          return response.data;
+        } catch (userOrdersError) {
+          console.warn('Impossible de récupérer les commandes via /users/id/orders, essai avec /orders');
+          // Si ça échoue, essayer avec l'endpoint général des commandes
+          const allOrdersResponse = await api.get('/orders', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          // Filtrer les commandes pour ne garder que celles de l'utilisateur courant
+          if (allOrdersResponse.data && allOrdersResponse.data.orders) {
+            return allOrdersResponse.data.orders.filter(order => order.userId === user.id);
+          } else if (Array.isArray(allOrdersResponse.data)) {
+            return allOrdersResponse.data.filter(order => order.userId === user.id);
+          }
+          return [];
+        }
       }
       
-      const response = await api.get('/users/orders', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      return response.data;
+      // Fallback : récupérer depuis le localStorage si l'utilisateur n'est pas authentifié
+      // ou si les requêtes API ont échoué
+      console.log('Utilisation du fallback localStorage pour les commandes');
+      const localOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+      return localOrders;
     } catch (error) {
       console.error('Error fetching user orders:', error);
-      throw error;
+      // Fallback : récupérer depuis le localStorage en cas d'erreur
+      const localOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+      return localOrders;
     }
   }
 };

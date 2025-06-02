@@ -4,13 +4,12 @@ import { ProductGrid, Product } from '../../components/ProductComponents';
 import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
 import api from '../../utils/api';
 
-const FoulardsPage = () => {
+const AccessoiresPage = () => {
   // État pour les produits et filtres
   const [products, setProducts] = useState<Product[]>([]);
-  const [foulardsProducts, setFoulardsProducts] = useState<Product[]>([]);
+  const [accessoiresProducts, setAccessoiresProducts] = useState<Product[]>([]);
   const [priceRange, setPriceRange] = useState([0, 200]);
   const [selectedColors, setSelectedColors] = useState([]);
-  const [selectedMaterials, setSelectedMaterials] = useState([]);
   const [sortBy, setSortBy] = useState('popular');
   const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -34,60 +33,38 @@ const FoulardsPage = () => {
             price: p.price,
             originalPrice: p.originalPrice,
             category: p.categorieId, // Adapter selon votre API
-            image: p.imageUrl ? `http://localhost:3001${p.imageUrl}` : `http://localhost:3001/api/placeholder/400/400?text=${p.name}`,
+            image: p.images && p.images.length > 0 ? `http://localhost:3001${p.images[0].url}` : `http://localhost:3001/api/placeholder/400/400?text=${p.name}`,
             rating: 5, // Valeur par défaut si non disponible
             inStock: p.stock > 0,
             isNew: new Date(p.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Produit créé dans les 7 derniers jours
             isSale: p.originalPrice && p.originalPrice > p.price,
-            colors: p.colors ? (Array.isArray(p.colors) ? p.colors.map(c => {
-              if (typeof c === 'string') {
-                try {
-                  const parsed = JSON.parse(c);
-                  return parsed.name;
-                } catch (e) {
-                  console.error('Erreur de parsing JSON pour la couleur:', c, e);
-                  return '';
-                }
-              }
-              return c.name || '';
-            }).filter(Boolean) : []) : [],
-            sizes: p.sizes ? (Array.isArray(p.sizes) ? p.sizes.map(s => {
-              if (typeof s === 'string') {
-                try {
-                  const parsed = JSON.parse(s);
-                  return parsed.name;
-                } catch (e) {
-                  console.error('Erreur de parsing JSON pour la taille:', s, e);
-                  return '';
-                }
-              }
-              return s.name || '';
-            }).filter(Boolean) : []) : [],
+            colors: p.colors ? p.colors.map(c => c.name) : [],
+            sizes: p.sizes ? p.sizes.map(s => s.name) : [],
             description: p.description
           };
         });
         
         setProducts(apiProducts);
         
-        // Filtrer uniquement les foulards (catégorie avec ID 'foulard' ou 'foulards')
-        const foulards = apiProducts.filter(product => {
+        // Filtrer uniquement les accessoires (catégorie avec ID 'accessoires')
+        const accessoires = apiProducts.filter(product => {
           // Afficher dans la console pour déboguer
           console.log('Vérification catégorie:', product.name, product.category);
           
           // Vérifier toutes les possibilités de nommage de catégorie
           return (
-            product.category === 'Foulards' || 
-            product.category === 'foulards' || 
-            product.category === 'Foulard' || 
-            product.category === 'foulard' || 
-            product.category === 2 || // Si votre API utilise des IDs numériques
+            product.category === 'Accessoires' || 
+            product.category === 'accessoires' || 
+            product.category === 'Accessoire' || 
+            product.category === 'accessoire' || 
+            product.category === 3 || // Si votre API utilise des IDs numériques
             (typeof product.category === 'string' && 
-              product.category.toLowerCase().includes('foulard'))
+              product.category.toLowerCase().includes('access'))
           );
         });
         
-        console.log('Produits filtrés (foulards):', foulards);
-        setFoulardsProducts(foulards);
+        console.log('Produits filtrés (accessoires):', accessoires);
+        setAccessoiresProducts(accessoires);
         setLoading(false);
       } catch (error) {
         console.error('Erreur lors du chargement des produits:', error);
@@ -99,8 +76,7 @@ const FoulardsPage = () => {
   }, []);
   
   // Options disponibles
-  const colors = ['Noir', 'Blanc', 'Beige', 'Rose', 'Bleu', 'Doré', 'Multicolore'];
-  const materials = ['Coton', 'Satin', 'Soie', 'Mousseline', 'Viscose', 'Jersey'];
+  const colors = ['Doré', 'Argent', 'Noir', 'Blanc', 'Rose', 'Multicolore'];
   
   // Gestion des filtres
   const handleColorToggle = (color) => {
@@ -111,25 +87,14 @@ const FoulardsPage = () => {
     );
   };
   
-  const handleMaterialToggle = (material) => {
-    setSelectedMaterials(prev =>
-      prev.includes(material)
-        ? prev.filter(m => m !== material)
-        : [...prev, material]
-    );
-  };
-  
   // Filtrage des produits
-  const filteredProducts = foulardsProducts.filter(product => {
+  const filteredProducts = accessoiresProducts.filter(product => {
     const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
     
     const matchesColor = selectedColors.length === 0 || 
       (product.colors && product.colors.some(color => selectedColors.includes(color)));
     
-    const matchesMaterial = selectedMaterials.length === 0 || 
-      (product.material && selectedMaterials.includes(product.material));
-    
-    return matchesPrice && matchesColor && matchesMaterial;
+    return matchesPrice && matchesColor;
   });
   
   // Afficher un message de chargement pendant le chargement des produits
@@ -137,7 +102,7 @@ const FoulardsPage = () => {
     return (
       <Layout>
         <div className="container mx-auto py-8">
-          <h1 className="text-3xl font-bold mb-8">Foulards & Hijabs</h1>
+          <h1 className="text-3xl font-bold mb-8">Accessoires</h1>
           <div className="flex justify-center items-center h-64">
             <p className="text-lg text-gray-600">Chargement des produits...</p>
           </div>
@@ -166,10 +131,10 @@ const FoulardsPage = () => {
         {/* Bannière de catégorie */}
         <div className="relative h-60 md:h-80 rounded-lg overflow-hidden mb-8">
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40"></div>
-          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/images/categories/foulard.png')" }}></div>
+          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/images/categories/accessoire.png')" }}></div>
           <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-4">
-            <h1 className="text-3xl md:text-5xl font-bold mb-2">Foulards</h1>
-            <p className="text-lg md:text-xl max-w-2xl">Élégance et style pour chaque occasion</p>
+            <h1 className="text-3xl md:text-5xl font-bold mb-2">Accessoires</h1>
+            <p className="text-lg md:text-xl max-w-2xl">Complétez votre style avec nos accessoires</p>
           </div>
         </div>
         
@@ -245,24 +210,6 @@ const FoulardsPage = () => {
                   ))}
                 </div>
               </div>
-              
-              {/* Matières */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium mb-2">Matières</h4>
-                <div className="flex flex-wrap gap-2">
-                  {materials.map(material => (
-                    <label key={material} className="flex items-center gap-1 cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={selectedMaterials.includes(material)}
-                        onChange={() => handleMaterialToggle(material)}
-                        className="accent-amber-700"
-                      />
-                      <span className="text-sm">{material}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
           
@@ -296,7 +243,6 @@ const FoulardsPage = () => {
                   onClick={() => {
                     setPriceRange([0, 200]);
                     setSelectedColors([]);
-                    setSelectedMaterials([]);
                   }}
                   className="mt-4 text-amber-700 hover:text-amber-800"
                 >
@@ -311,4 +257,4 @@ const FoulardsPage = () => {
   );
 };
 
-export default FoulardsPage;
+export default AccessoiresPage;

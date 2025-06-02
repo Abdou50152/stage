@@ -13,33 +13,33 @@ const Orders = () => {
   const { showNotification } = useNotification();
 
   // Mock data - will be replaced with API call
-  useEffect(() => {
+  // useEffect(() => {
     // Simulate API call
-    setTimeout(() => {
-      setOrders([
-        {
-          id: 1,
-          client: { name: 'HAJAR', phone: '+212 634 234 232', address: '12 Rue de Allal fassi' },
-          products: [
-            { name: 'Robe été', category: 'robe', color: 'bleu', quantity: 1, price: 259.99 }
-          ],
-          total: 259.99,
-          status: 'Pending'
-        },
-        {
-          id: 2,
-          client: { name: 'Hayat', phone: '+212 634 234 232', address: '5 Avenue' },
-          products: [
-            { name: 'Foulard soie', category: 'foulard', color: 'rouge', quantity: 2, price: 129.99 },
-            { name: 'Ceinture cuir', category: 'accessoire', color: 'noir', quantity: 1, price: 139.99 }
-          ],
-          total: 499.97,
-          status: 'Pending'
-        }
-      ]);
-      setLoading(false);
-    }, 500);
-  }, []);
+    // setTimeout(() => {
+      // setOrders([
+      //   {
+      //     id: 1,
+      //     client: { name: 'HAJAR', phone: '+212 634 234 232', address: '12 Rue de Allal fassi' },
+      //     products: [
+      //       { name: 'Robe été', category: 'robe', color: 'bleu', quantity: 1, price: 259.99 }
+      //     ],
+      //     total: 259.99,
+      //     status: 'Pending'
+      //   },
+      //   {
+      //     id: 2,
+      //     client: { name: 'Hayat', phone: '+212 634 234 232', address: '5 Avenue' },
+      //     products: [
+      //       { name: 'Foulard soie', category: 'foulard', color: 'rouge', quantity: 2, price: 129.99 },
+      //       { name: 'Ceinture cuir', category: 'accessoire', color: 'noir', quantity: 1, price: 139.99 }
+      //     ],
+      //     total: 499.97,
+      //     status: 'Pending'
+      //   }
+      // ]);
+      // setLoading(false);
+    // }, 500);
+  // }, []);
 
   const handleConfirm = (orderId) => {
     setOrders(orders.map(order => 
