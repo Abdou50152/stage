@@ -5,7 +5,7 @@ const morgan = require("morgan");
 const path = require("path");
 require("dotenv").config();
 
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 4000;
 
 // routers path
 const categoriesRouter = require("./src/routers/categories/categories.routes");

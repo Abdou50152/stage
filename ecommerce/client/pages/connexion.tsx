@@ -25,7 +25,7 @@ export default function LoginPage() {
         // Vérifier si c'est un admin
         if (data.user && data.user.role === 'admin') {
           // Rediriger vers le frontend admin
-          window.location.href = 'http://localhost:3002';
+          window.location.href = 'http://localhost:3000';
         } else {
           // Rediriger vers le profil utilisateur normal
           router.push('/profile');
@@ -53,7 +53,7 @@ export default function LoginPage() {
 
       if (response.ok) {
         // Rediriger vers le frontend admin
-        window.location.href = 'http://localhost:3002';
+        window.location.href = 'http://localhost:3000';
       } else {
         setError('Erreur de connexion admin');
       }

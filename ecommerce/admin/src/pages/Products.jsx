@@ -562,7 +562,7 @@ const Products = () => {
                         {productImages.map((img) => (
                           <div key={img.id} className="relative group">
                             <img 
-                              src={`http://localhost:3000${img.imageUrl}`} 
+                              src={`http://localhost:4000${img.imageUrl}`} 
                               alt={`Product ${img.id}`} 
                               className={`h-24 w-full object-cover rounded-md ${img.isPrimary ? 'ring-2 ring-amber-500' : ''}`} 
                             />

@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
-import { ProductGrid, sampleProducts } from '../../components/ProductComponents';
+import { ProductGrid } from '../../components/ProductComponents';
 import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
+import ProductsService from '../../services/products.service';
 
 const FoulardsPage = () => {
-  // Filtrer uniquement les foulards
-  const foulardsProducts = sampleProducts.filter(product => product.category === 'foulards');
+  // État pour les produits et le chargement
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   
   // État pour les filtres
   const [priceRange, setPriceRange] = useState([0, 200]);
@@ -13,6 +15,63 @@ const FoulardsPage = () => {
   const [selectedMaterials, setSelectedMaterials] = useState([]);
   const [sortBy, setSortBy] = useState('popular');
   const [showFilters, setShowFilters] = useState(false);
+  
+  // Chargement des produits depuis l'API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        // Récupérer les produits de la catégorie foulards (categoryId=3 pour foulards)
+        const result = await ProductsService.getAllProducts({ categoryId: 3 });
+        // L'API renvoie un objet {count, products} au lieu d'un tableau direct
+        if (result && result.products && Array.isArray(result.products)) {
+          // Traiter les données selon la structure de l'API
+          const processedProducts = result.products.map(product => {
+            // Parser les couleurs et tailles qui sont stockées sous forme de chaînes JSON
+            let colors = [];
+            let sizes = [];
+            
+            try {
+              if (product.colors) {
+                colors = JSON.parse(product.colors);
+              }
+            } catch (error) {
+              console.error('Erreur de parsing des couleurs:', error);
+            }
+            
+            try {
+              if (product.sizes) {
+                sizes = JSON.parse(product.sizes);
+              }
+            } catch (error) {
+              console.error('Erreur de parsing des tailles:', error);
+            }
+            
+            return {
+              ...product,
+              colors,
+              sizes,
+              image: product.imageUrl ? `http://localhost:4000${product.imageUrl}` : null,
+              category: 'foulards',
+              inStock: product.stock > 0
+            };
+          });
+          
+          setProducts(processedProducts);
+        } else {
+          console.error('Format de données incorrect:', result);
+          setProducts([]);
+        }
+      } catch (error) {
+        console.error('Erreur lors de la récupération des produits:', error);
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProducts();
+  }, []);
   
   // Options disponibles
   const colors = ['Noir', 'Blanc', 'Beige', 'Rose', 'Bleu', 'Doré', 'Multicolore'];
@@ -36,7 +95,7 @@ const FoulardsPage = () => {
   };
   
   // Filtrage des produits
-  const filteredProducts = foulardsProducts.filter(product => {
+  const filteredProducts = products.filter(product => {
     const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
     
     const matchesColor = selectedColors.length === 0 || 
@@ -188,23 +247,30 @@ const FoulardsPage = () => {
               </div>
             </div>
             
-            {/* Grille de produits */}
-            {sortedProducts.length > 0 ? (
-              <ProductGrid products={sortedProducts} />
-            ) : (
+            {/* État de chargement */}
+            {loading ? (
               <div className="text-center py-12">
-                <p className="text-gray-500">Aucun produit ne correspond à vos critères de recherche.</p>
-                <button 
-                  onClick={() => {
-                    setPriceRange([0, 200]);
-                    setSelectedColors([]);
-                    setSelectedMaterials([]);
-                  }}
-                  className="mt-4 text-amber-700 hover:text-amber-800"
-                >
-                  Réinitialiser les filtres
-                </button>
+                <p className="text-gray-500">Chargement des produits...</p>
               </div>
+            ) : (
+              /* Grille de produits */
+              sortedProducts.length > 0 ? (
+                <ProductGrid products={sortedProducts} />
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-gray-500">Aucun produit ne correspond à vos critères de recherche.</p>
+                  <button 
+                    onClick={() => {
+                      setPriceRange([0, 200]);
+                      setSelectedColors([]);
+                      setSelectedMaterials([]);
+                    }}
+                    className="mt-4 text-amber-700 hover:text-amber-800"
+                  >
+                    Réinitialiser les filtres
+                  </button>
+                </div>
+              )
             )}
           </div>
         </div>

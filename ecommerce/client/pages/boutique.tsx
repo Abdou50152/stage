@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { ProductGrid, sampleProducts, Product } from '../components/ProductComponents';
+import { ProductGrid, Product } from '../components/ProductComponents';
 import { Sliders, ChevronDown, X } from 'lucide-react';
+import ProductsService from '../services/products.service';
 
 const ShopPage = () => {
-  const [products, setProducts] = useState<Product[]>(sampleProducts);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(sampleProducts);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     category: '',
     priceRange: { min: 0, max: 100 },
@@ -16,51 +19,116 @@ const ShopPage = () => {
     onSale: false,
   });
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  
+
+  // Charger les produits depuis l'API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const result = await ProductsService.getAllProducts();
+
+        // L'API renvoie un objet {count, products} au lieu d'un tableau direct
+        if (result && result.products && Array.isArray(result.products)) {
+          // Traiter les données selon la structure de l'API
+          const processedProducts = result.products.map(product => {
+            // Parser les couleurs et tailles qui sont stockées sous forme de chaînes JSON
+            let colors = [];
+            let sizes = [];
+
+            try {
+              if (product.colors && typeof product.colors === 'string' && product.colors.trim() !== '') {
+                colors = JSON.parse(product.colors);
+              }
+            } catch (error) {
+              console.error('Erreur de parsing des couleurs:', error);
+            }
+            
+            try {
+              if (product.sizes && typeof product.sizes === 'string' && product.sizes.trim() !== '') {
+                sizes = JSON.parse(product.sizes);
+              }
+            } catch (error) {
+              console.error('Erreur de parsing des tailles:', error);
+            }
+
+            return {
+              ...product,
+              colors,
+              sizes,
+              image: product.imageUrl ? `http://localhost:4000${product.imageUrl}` : null,
+              category: product.categorieId === 1 ? 'robes' : 
+                        product.categorieId === 2 ? 'accessoires' : 
+                        product.categorieId === 3 ? 'foulards' : 'autres',
+              inStock: product.stock > 0,
+              rating: 5 // Valeur par défaut pour le rating
+            };
+          });
+
+          setProducts(processedProducts);
+          setFilteredProducts(processedProducts);
+        } else {
+          console.error('Format de données incorrect:', result);
+          setError('Format de données incorrect');
+          setProducts([]);
+          setFilteredProducts([]);
+        }
+      } catch (error) {
+        console.error('Erreur lors de la récupération des produits:', error);
+        setError('Erreur lors de la récupération des produits');
+        setProducts([]);
+        setFilteredProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   // Extraire les données uniques pour les filtres
-  const categories = ['robes','Accesories' , 'foulards'];
+  const categories = ['robes', 'accessoires', 'foulards'];
   const allColors = Array.from(new Set(products.flatMap(p => p.colors || [])));
   const allSizes = Array.from(new Set(products.flatMap(p => p.sizes || [])));
-  
+
   // Appliquer les filtres
   useEffect(() => {
-    let result = [...sampleProducts];
-    
+    let result = [...products];
+
     // Filtre par catégorie
     if (filters.category) {
       result = result.filter(p => p.category === filters.category);
     }
-    
+
     // Filtre par prix
     result = result.filter(p => 
       p.price >= filters.priceRange.min && 
       p.price <= filters.priceRange.max
     );
-    
+
     // Filtre par couleurs
     if (filters.colors.length > 0) {
       result = result.filter(p => 
         p.colors?.some(color => filters.colors.includes(color))
       );
     }
-    
+
     // Filtre par tailles
     if (filters.sizes.length > 0) {
       result = result.filter(p => 
         p.sizes?.some(size => filters.sizes.includes(size))
       );
     }
-    
+
     // Filtre par stock
     if (filters.inStock) {
       result = result.filter(p => p.inStock);
     }
-    
+
     // Filtre par promotion
     if (filters.onSale) {
       result = result.filter(p => p.isSale);
     }
-    
+
     // Tri
     switch(filters.sortBy) {
       case 'price-low-high':
@@ -78,19 +146,19 @@ const ShopPage = () => {
         result.sort((a, b) => b.id - a.id);
         break;
     }
-    
+
     setFilteredProducts(result);
   }, [filters]);
-  
+
   // Gestionnaires d'événements pour les filtres
   const handleCategoryChange = (category: string) => {
     setFilters(prev => ({ ...prev, category }));
   };
-  
+
   const handlePriceChange = (min: number, max: number) => {
     setFilters(prev => ({ ...prev, priceRange: { min, max } }));
   };
-  
+
   const handleColorToggle = (color: string) => {
     setFilters(prev => {
       const newColors = prev.colors.includes(color)
@@ -99,7 +167,7 @@ const ShopPage = () => {
       return { ...prev, colors: newColors };
     });
   };
-  
+
   const handleSizeToggle = (size: string) => {
     setFilters(prev => {
       const newSizes = prev.sizes.includes(size)
@@ -108,19 +176,19 @@ const ShopPage = () => {
       return { ...prev, sizes: newSizes };
     });
   };
-  
+
   const handleSortChange = (sortBy: string) => {
     setFilters(prev => ({ ...prev, sortBy }));
   };
-  
+
   const handleInStockToggle = () => {
     setFilters(prev => ({ ...prev, inStock: !prev.inStock }));
   };
-  
+
   const handleOnSaleToggle = () => {
     setFilters(prev => ({ ...prev, onSale: !prev.onSale }));
   };
-  
+
   const resetFilters = () => {
     setFilters({
       category: '',
@@ -162,7 +230,7 @@ const ShopPage = () => {
                 ))}
               </ul>
             </div>
-            
+
             <div className="mb-6">
               <h3 className="text-lg font-medium mb-4">Prix</h3>
               <div className="flex items-center gap-2">
@@ -180,7 +248,7 @@ const ShopPage = () => {
                 <span>{filters.priceRange.max}€</span>
               </div>
             </div>
-            
+
             {allColors.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-lg font-medium mb-4">Couleurs</h3>
@@ -201,7 +269,7 @@ const ShopPage = () => {
                 </div>
               </div>
             )}
-            
+
             {allSizes.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-lg font-medium mb-4">Tailles</h3>
@@ -222,7 +290,7 @@ const ShopPage = () => {
                 </div>
               </div>
             )}
-            
+
             <div className="mb-6">
               <h3 className="text-lg font-medium mb-4">Autres filtres</h3>
               <div className="space-y-2">
@@ -248,7 +316,7 @@ const ShopPage = () => {
                 </div>
               </div>
             </div>
-            
+
             <button
               onClick={resetFilters}
               className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
@@ -257,13 +325,13 @@ const ShopPage = () => {
             </button>
           </div>
         </aside>
-        
+
         {/* Contenu principal */}
         <div className="flex-grow">
           {/* En-tête avec options de tri et bouton filtres mobile */}
           <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
             <h1 className="text-2xl font-bold">Boutique</h1>
-            
+
             <div className="flex items-center gap-4">
               <div className="flex items-center">
                 <label htmlFor="sort" className="mr-2 text-sm">Trier par:</label>
@@ -279,7 +347,7 @@ const ShopPage = () => {
                   <option value="rating">Meilleures notes</option>
                 </select>
               </div>
-              
+
               <button
                 className="md:hidden flex items-center gap-1 text-gray-700 px-3 py-1.5 border border-gray-300 rounded-md"
                 onClick={() => setMobileFiltersOpen(true)}
@@ -289,7 +357,7 @@ const ShopPage = () => {
               </button>
             </div>
           </div>
-          
+
           {/* Info résultats */}
           <div className="mb-6">
             <p className="text-gray-600">
@@ -304,9 +372,23 @@ const ShopPage = () => {
               )}
             </p>
           </div>
-          
-          {/* Produits */}
-          {filteredProducts.length > 0 ? (
+
+          {/* État de chargement */}
+          {loading ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500">Chargement des produits...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-red-500">{error}</p>
+              <button 
+                onClick={() => window.location.reload()}
+                className="mt-4 px-4 py-2 bg-pink-600 text-white rounded-md hover:bg-pink-700 transition-colors"
+              >
+                Réessayer
+              </button>
+            </div>
+          ) : filteredProducts.length > 0 ? (
             <ProductGrid products={filteredProducts} />
           ) : (
             <div className="text-center py-12">

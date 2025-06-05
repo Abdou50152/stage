@@ -34,9 +34,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
         <Link href={`/produits/${product.id}`}>
           <div className="relative h-64 bg-gray-200">
             <img 
-              src={`http://localhost:3001/api/placeholder/400/400?text=${product.name}`} 
+              src={product.image || `/images/product-placeholder.png`} 
               alt={product.name} 
               className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300"
+              onError={(e) => {
+                e.currentTarget.onerror = null; 
+                e.currentTarget.src = `/images/product-placeholder.png`;
+              }}
             />
           </div>
         </Link>
@@ -122,97 +126,97 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart 
 };
 
 // Exemple de données de produits pour le développement
-export const sampleProducts: Product[] = [
-  {
-    id: 1,
-    name: "Robe Maxi Élégante",
-    price: 89.99,
-    category: "robes",
-    image: "public/images/products/robe-1.png",
+// export const sampleProducts: Product[] = [
+//   {
+//     id: 1,
+//     name: "Robe Maxi Élégante",
+//     price: 89.99,
+//     category: "robes",
+//     image: "public/images/products/robe-1.png",
     //  gallery: [
     //   "/images/products/robe-longue-moderne-1.jpg",
     //   "/images/products/robe-longue-moderne-2.jpg",
     //   "/images/products/robe-longue-moderne-3.jpg"
     // ],
-    rating: 5,
-    inStock: true,
-    colors: ["Noir", "Bleu nuit", "Rose poudré"],
-    sizes: ["XS", "S", "M", "L", "XL"],
-    description: "Robe longue élégante avec coupe moderne et confortable."
-  },
-  {
-    id: 2,
-    name: "Hijab Premium Coton",
-    price: 19.99,
-    category: "hijabs",
-    image: "http://localhost:3001/uploads/products/hijab-1.jpg",
-    rating: 5,
-    inStock: true,
-    colors: ["Blanc", "Noir", "Bleu ciel", "Rose pâle"]
-  },
-  {
-    id: 3,
-    name: "Foulard Satin Luxe",
-    price: 24.99,
-    originalPrice: 29.99,
-    category: "foulards",
-    image: "http://localhost:3001/uploads/products/foulard-1.jpg",
-    rating: 4,
-    inStock: true,
-    isSale: true,
-    colors: ["Doré", "Argent", "Émeraude"]
-  },
-  {
-    id: 4,
-    name: "Robe Longue Festive",
-    price: 89.99,
-    category: "robes",
-    image: "http://localhost:3001/uploads/products/robe-2.jpg",
-    rating: 5,
-    inStock: true,
-    colors: ["Noir", "Rouge", "Bleu royal"],
-    sizes: ["S", "M", "L", "XL"]
-  },
-  {
-    id: 5,
-    name: "Hijab Mousseline",
-    price: 15.99,
-    category: "hijabs",
-    image: "http://localhost:3001/uploads/products/hijab-2.jpg",
-    rating: 4,
-    inStock: true,
-    colors: ["Blanc", "Beige", "Gris", "Noir"]
-  },
-  {
-    id: 6,
-    name: "Foulard Imprimé Floral",
-    price: 22.99,
-    category: "foulards",
-    image: "http://localhost:3001/uploads/products/foulard-2.jpg",
-    rating: 4,
-    inStock: false,
-    colors: ["Multicolore"]
-  },
-  {
-    id: 7,
-    name: "Robe Casual Quotidienne",
-    price: 54.99,
-    category: "robes",
-    image: "http://localhost:3001/uploads/products/robe-3.jpg",
-    rating: 3,
-    inStock: true,
-    colors: ["Bleu marine", "Vert forêt", "Bordeaux"],
-    sizes: ["S", "M", "L", "XL"]
-  },
-  {
-    id: 8,
-    name: "Hijab Jersey Premium",
-    price: 22.99,
-    category: "hijabs",
-    image: "http://localhost:3001/uploads/products/hijab-3.jpg",
-    rating: 5,
-    inStock: true,
-    isNew: true,
-    colors: ["Noir", "Gris", "Bleu marine", "Bordeaux"]
-  }
-];
+//     rating: 5,
+//     inStock: true,
+//     colors: ["Noir", "Bleu nuit", "Rose poudré"],
+//     sizes: ["XS", "S", "M", "L", "XL"],
+//     description: "Robe longue élégante avec coupe moderne et confortable."
+//   },
+//   {
+//     id: 2,
+//     name: "Hijab Premium Coton",
+//     price: 19.99,
+//     category: "hijabs",
+//     image: "http://localhost:4000/uploads/products/hijab-1.jpg",
+//     rating: 5,
+//     inStock: true,
+//     colors: ["Blanc", "Noir", "Bleu ciel", "Rose pâle"]
+//   },
+//   {
+//     id: 3,
+//     name: "Foulard Satin Luxe",
+//     price: 24.99,
+//     originalPrice: 29.99,
+//     category: "foulards",
+//     image: "http://localhost:4000/uploads/products/foulard-1.jpg",
+//     rating: 4,
+//     inStock: true,
+//     isSale: true,
+//     colors: ["Doré", "Argent", "Émeraude"]
+//   },
+//   {
+//     id: 4,
+//     name: "Robe Longue Festive",
+//     price: 89.99,
+//     category: "robes",
+//     image: "http://localhost:4000/uploads/products/robe-2.jpg",
+//     rating: 5,
+//     inStock: true,
+//     colors: ["Noir", "Rouge", "Bleu royal"],
+//     sizes: ["S", "M", "L", "XL"]
+//   },
+//   {
+//     id: 5,
+//     name: "Hijab Mousseline",
+//     price: 15.99,
+//     category: "hijabs",
+//     image: "http://localhost:4000/uploads/products/hijab-2.jpg",
+//     rating: 4,
+//     inStock: true,
+//     colors: ["Blanc", "Beige", "Gris", "Noir"]
+//   },
+//   {
+//     id: 6,
+//     name: "Foulard Imprimé Floral",
+//     price: 22.99,
+//     category: "foulards",
+//     image: "http://localhost:4000/uploads/products/foulard-2.jpg",
+//     rating: 4,
+//     inStock: false,
+//     colors: ["Multicolore"]
+//   },
+//   {
+//     id: 7,
+//     name: "Robe Casual Quotidienne",
+//     price: 54.99,
+//     category: "robes",
+//     image: "http://localhost:4000/uploads/products/robe-3.jpg",
+//     rating: 3,
+//     inStock: true,
+//     colors: ["Bleu marine", "Vert forêt", "Bordeaux"],
+//     sizes: ["S", "M", "L", "XL"]
+//   },
+//   {
+//     id: 8,
+//     name: "Hijab Jersey Premium",
+//     price: 22.99,
+//     category: "hijabs",
+//     image: "http://localhost:4000/uploads/products/hijab-3.jpg",
+//     rating: 5,
+//     inStock: true,
+//     isNew: true,
+//     colors: ["Noir", "Gris", "Bleu marine", "Bordeaux"]
+//   }
+// ];

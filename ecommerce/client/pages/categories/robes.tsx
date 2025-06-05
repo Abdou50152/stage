@@ -1,18 +1,77 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
-import { ProductGrid, sampleProducts } from '../../components/ProductComponents';
+import { ProductGrid, Product } from '../../components/ProductComponents';
 import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
+import ProductsService from '../../services/products.service';
 
 const RobesPage = () => {
-  // Filtrer uniquement les robes
-  const robesProducts = sampleProducts.filter(product => product.category === 'robes');
+  // État pour les produits et le chargement
+  const [robesProducts, setRobesProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // État pour les filtres
   const [priceRange, setPriceRange] = useState([0, 200]);
-  const [selectedColors, setSelectedColors] = useState([]);
-  const [selectedSizes, setSelectedSizes] = useState([]);
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('popular');
   const [showFilters, setShowFilters] = useState(false);
+  
+  // Chargement des produits depuis l'API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const result = await ProductsService.getAllProducts({});
+        
+        // L'API renvoie un objet {count, products} au lieu d'un tableau direct
+        if (result && result.products && Array.isArray(result.products)) {
+          // Traiter les produits pour avoir un format cohérent
+          const processedProducts = result.products
+            .filter(product => product.categorieId === 1) // Filtrer uniquement les robes (catégorie 1)
+            .map(product => {
+              let colors = [];
+              let sizes = [];
+              
+              try {
+                if (product.colors && typeof product.colors === 'string' && product.colors.trim() !== '') {
+                  colors = JSON.parse(product.colors);
+                }
+              } catch (error) {
+                console.error('Erreur parsing colors:', error);
+              }
+              
+              try {
+                if (product.sizes && typeof product.sizes === 'string' && product.sizes.trim() !== '') {
+                  sizes = JSON.parse(product.sizes);
+                }
+              } catch (error) {
+                console.error('Erreur parsing sizes:', error);
+              }
+              
+              return {
+                ...product,
+                colors,
+                sizes,
+                category: 'robes', // Nécessaire pour la compatibilité avec le composant
+                image: product.imageUrl ? `http://localhost:4000${product.imageUrl}` : null,
+                inStock: product.stock > 0,
+                isNew: product.isNew === 1,
+                isSale: product.isSale === 1 || product.price < product.originalPrice
+              };
+            });
+          
+          setRobesProducts(processedProducts);
+        }
+      } catch (err) {
+        console.error('Erreur lors du chargement des robes:', err);
+        setError('Impossible de charger les produits. Veuillez réessayer plus tard.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProducts();
+  }, []);
   
   // Options disponibles
   const colors = ['Noir', 'Blanc', 'Bleu', 'Rouge', 'Rose', 'Beige'];
@@ -189,7 +248,15 @@ const RobesPage = () => {
             </div>
             
             {/* Grille de produits */}
-            {sortedProducts.length > 0 ? (
+            {loading ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500">Chargement des produits...</p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <p className="text-red-500">{error}</p>
+              </div>
+            ) : sortedProducts.length > 0 ? (
               <ProductGrid products={sortedProducts} />
             ) : (
               <div className="text-center py-12">

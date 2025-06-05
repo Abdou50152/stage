@@ -22,6 +22,21 @@ const getAllOrders = async (skip, limit) => {
   const ordersPromise = Orders.findAll({
     offset: skip,
     limit: limit,
+    include: [
+      {
+        model: db.users,
+        // attributes: ["id", "fullName", "email"],
+      },
+      {
+        model: db.orderProducts,
+        include:{
+          model:db.products,
+          // attributes:["id","name","price"]
+        },
+        // attributes: ["id", "quantity"],
+      },
+    ],
+
   });
 
   const countPromise = Orders.count();

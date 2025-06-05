@@ -1,56 +1,155 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
-import { sampleProducts, ProductGrid } from '../../components/ProductComponents';
+import { ProductGrid } from '../../components/ProductComponents';
 import { Minus, Plus, Heart, Share, ShoppingBag, ChevronRight, Star, Truck, Package, RefreshCcw } from 'lucide-react';
 import Link from 'next/link';
 import AddToCartButton from '../../components/AddToCartButton';
 import { useCart } from '../../contexts/CartContext';
 import SizeGuideModal from '../../components/SizeGuideModal';
+import ProductsService from '../../services/products.service';
+
 const ProductDetailPage = () => {
   const router = useRouter();
   const { id } = router.query;
   const { addToCart } = useCart();
-  
-  // Find product by ID
-  const product = sampleProducts.find(p => p.id === Number(id));
-  
+
+  // États pour le produit et le chargement
+  const [product, setProduct] = useState(null);
+  const [similarProducts, setSimilarProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   // State for selections
   const [quantity, setQuantity] = useState(1);
-  const [selectedColor, setSelectedColor] = useState(product?.colors?.[0] || '');
-  const [selectedSize, setSelectedSize] = useState(product?.sizes?.[0] || '');
-  
-  // Similar products (same category)
-  const similarProducts = sampleProducts
-    .filter(p => p.category === product?.category && p.id !== product?.id)
-    .slice(0, 4);
-  
-  // If product not found
-  if (!product) {
+  const [selectedColor, setSelectedColor] = useState('');
+  const [selectedSize, setSelectedSize] = useState('');
+
+  // Récupérer le produit depuis l'API
+  useEffect(() => {
+    if (id) {
+      const fetchProduct = async () => {
+        try {
+          setLoading(true);
+          setError(null);
+
+          // Récupérer les détails du produit
+          const productData = await ProductsService.getProductById(Number(id));
+
+          // Traiter les données selon la structure de l'API
+          let colors = [];
+          let sizes = [];
+
+          try {
+            if (productData.colors) {
+              colors = JSON.parse(productData.colors);
+            }
+          } catch (error) {
+            console.error('Erreur de parsing des couleurs:', error);
+          }
+
+          try {
+            if (productData.sizes) {
+              sizes = JSON.parse(productData.sizes);
+            }
+          } catch (error) {
+            console.error('Erreur de parsing des tailles:', error);
+          }
+
+          const processedProduct = {
+            ...productData,
+            colors,
+            sizes,
+            image: productData.imageUrl ? `http://localhost:4000${productData.imageUrl}` : null,
+            inStock: productData.stock > 0
+          };
+
+          setProduct(processedProduct);
+          setSelectedColor(colors[0] || '');
+          setSelectedSize(sizes[0] || '');
+
+          // Récupérer les produits similaires de la même catégorie
+          if (productData.categorieId) {
+            const similarProductsData = await ProductsService.getAllProducts({
+              categoryId: productData.categorieId,
+              limit: 4
+            });
+
+            if (Array.isArray(similarProductsData)) {
+              // Filtrer pour exclure le produit actuel
+              const filteredProducts = similarProductsData
+                .filter(p => p.id !== Number(id))
+                .map(p => {
+                  let pColors = [];
+                  let pSizes = [];
+
+                  try { if (p.colors) pColors = JSON.parse(p.colors); } catch {}
+                  try { if (p.sizes) pSizes = JSON.parse(p.sizes); } catch {}
+
+                  return {
+                    ...p,
+                    colors: pColors,
+                    sizes: pSizes,
+                    image: p.imageUrl ? `http://localhost:4000${p.imageUrl}` : null,
+                    inStock: p.stock > 0
+                  };
+                })
+                .slice(0, 4);
+
+              setSimilarProducts(filteredProducts);
+            } else {
+              setSimilarProducts([]);
+            }
+          }
+        } catch (err) {
+          console.error('Erreur lors de la récupération du produit:', err);
+          setError('Produit non trouvé ou erreur lors du chargement');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchProduct();
+    }
+  }, [id]);
+
+  // État de chargement ou d'erreur
+  if (loading) {
+    return (
+      <Layout>
+        <div className="text-center py-16">
+          <h1 className="text-2xl font-bold mb-4">Chargement du produit...</h1>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Si erreur ou produit non trouvé
+  if (error || !product) {
     return (
       <Layout>
         <div className="text-center py-16">
           <h1 className="text-2xl font-bold mb-4">Produit non trouvé</h1>
           <p className="text-gray-600 mb-6">Le produit que vous recherchez n'existe pas ou a été supprimé.</p>
-          <Link href="/boutique" className="px-6 py-2 bg-pink-600 text-white rounded-md hover:bg-pink-700 transition-colors">
+          <Link href="/boutique" className="px-6 py-2 bg-amber-800 text-white rounded-md hover:bg-amber-700 transition-colors">
             Retour à la boutique
           </Link>
         </div>
       </Layout>
     );
   }
-  
+
   // Event handlers
   const decreaseQuantity = () => {
     if (quantity > 1) {
       setQuantity(quantity - 1);
     }
   };
-  
+
   const increaseQuantity = () => {
     setQuantity(quantity + 1);
   };
-  
+
   const handleAddToCart = () => {
     addToCart({
       id: product.id.toString(),
@@ -70,7 +169,7 @@ const ProductDetailPage = () => {
         <ChevronRight size={16} className="mx-2" />
         <Link href="/boutique" className="hover:text-pink-600 transition-colors">Boutique</Link>
         <ChevronRight size={16} className="mx-2" />
-        <Link href={`/categories/${product.category}`} className="hover:text-pink-600 transition-colors capitalize">{product.category}</Link>
+        <Link href={`/categories/${product.categorieId}`} className="hover:text-pink-600 transition-colors capitalize">{product.categorieName}</Link>
         <ChevronRight size={16} className="mx-2" />
         <span className="text-gray-900 font-medium truncate">{product.name}</span>
       </div>
@@ -80,9 +179,12 @@ const ProductDetailPage = () => {
         <div>
           <div className="bg-gray-100 rounded-lg overflow-hidden mb-4 aspect-square">
             <img 
-              src={product.image || `http://localhost:3001/api/placeholder/800/800?text=${product.name}`} 
+              src={product.image || `http://localhost:4000/api/placeholder/800/800?text=${product.name}`} 
               alt={product.name} 
               className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.src = `http://localhost:4000/api/placeholder/800/800?text=${product.name}`;
+              }}
             />
           </div>
           {/* Thumbnails */}
@@ -90,7 +192,7 @@ const ProductDetailPage = () => {
             {[...Array(4)].map((_, index) => (
               <div key={index} className="bg-gray-100 rounded-lg overflow-hidden aspect-square">
                 <img 
-                  src={`http://localhost:3001/api/placeholder/200/200?text=Vue ${index + 1}`} 
+                  src={`http://localhost:4000/api/placeholder/200/200?text=Vue ${index + 1}`} 
                   alt={`${product.name} vue ${index + 1}`} 
                   className="w-full h-full object-cover"
                 />
