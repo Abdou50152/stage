@@ -110,16 +110,17 @@ const AccessoiresPage = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4">
-        {/* Bannière de catégorie */}
-        <div className="relative h-60 md:h-80 rounded-lg overflow-hidden mb-8">
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40"></div>
-          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/images/categories/jewellery.png')" }}></div>
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-4">
-            <h1 className="text-3xl md:text-5xl font-bold mb-2">Accessoires</h1>
-            <p className="text-lg md:text-xl max-w-2xl">Complétez votre style avec élégance</p>
-          </div>
+      {/* Bannière de catégorie étendue */}
+      <div className="relative h-60 md:h-80 overflow-hidden mb-8 w-screen -mx-[calc((100vw-100%)/2)]">
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40"></div>
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/images/categories/jewellery.png')" }}></div>
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-4">
+          <h1 className="text-3xl md:text-5xl font-bold mb-2">Accessoires</h1>
+          <p className="text-lg md:text-xl max-w-2xl">Complétez votre style avec élégance</p>
         </div>
+      </div>
+      
+      <div className="container mx-auto px-4">
         
         {/* Filtres et Grille de produits */}
         <div className="flex flex-col md:flex-row gap-6">

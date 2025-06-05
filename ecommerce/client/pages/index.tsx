@@ -54,8 +54,14 @@ const HomePage = () => {
             };
           });
           
-          // Produits mis en avant (nouveaux ou en solde)
-          setFeaturedProducts(processedProducts.filter(p => p.isNew || p.isSale).slice(0, 4));
+          // Ajout de logs de débogage
+          console.log('Nombre total de produits reçus:', processedProducts.length);
+          console.log('Produits avec isNew:', processedProducts.filter(p => p.isNew).length);
+          console.log('Produits avec isSale:', processedProducts.filter(p => p.isSale).length);
+          
+          // Produits mis en avant (nouveaux ou en solde, ou les premiers produits si aucun n'est mis en avant)
+          const featured = processedProducts.filter(p => p.isNew || p.isSale);
+          setFeaturedProducts(featured.length > 0 ? featured.slice(0, 4) : processedProducts.slice(0, 4));
           
           // Filtrer par catégorie
           setRobes(processedProducts.filter(p => p.categorieId === 1).slice(0, 4));
@@ -91,7 +97,7 @@ const HomePage = () => {
     resetTimeout();
     timeoutRef.current = setTimeout(
       () => setCurrentSlide((prevSlide) => (prevSlide === carouselImages.length - 1 ? 0 : prevSlide + 1)),
-      5000 // 5 secondes par slide
+      3000 // 5 secondes par slide
     );
 
     return () => {
@@ -102,19 +108,22 @@ const HomePage = () => {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative h-[900px] md:h-[800px] overflow-hidden">
-        <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors"></div>
+      <section className="relative w-screen h-screen overflow-hidden -mt-8 -mx-[calc((100vw-100%)/2)]">
+        <div className="absolute inset-0 bg-black/20 transition-colors z-10"></div>
         
         {/* Carrousel d'images */}
         <div className="relative h-full w-full overflow-hidden">
           {carouselImages.map((image, index) => (
             <div
               key={index}
-              className={`absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 ease-in-out ${
-                index === currentSlide ? 'opacity-100' : 'opacity-0'
-              }`}
-              style={{ backgroundImage: `url('${image}')` }}
+              className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? 'opacity-100' : 'opacity-0'}`}
             >
+              <img 
+                src={image} 
+                alt="Hero image" 
+                className="w-full h-full object-cover object-center"
+                style={{width: '100vw', height: '100vh', maxWidth: 'none'}}  
+              />
               <div className="absolute inset-0 bg-black/30"></div>
             </div>
           ))}
@@ -135,15 +144,18 @@ const HomePage = () => {
         </div>
 
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center w-full h-full text-center text-white px-4">
-          <h1 className="text-4xl md:text-6xl font-extrabold mb-4 tracking-wide">Élégance et Modestie</h1>
-          <p className="text-lg md:text-2xl mb-8 max-w-2xl">
+          <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-wide drop-shadow-lg">Élégance et Modestie</h1>
+          <p className="text-xl md:text-3xl mb-10 max-w-3xl drop-shadow-md">
             Découvrez notre nouvelle collection de vêtements élégants pour femmes
-          </p> 
+          </p>
+          <Link href="/boutique" className="px-8 py-3 bg-white/20 backdrop-blur-sm text-white border-2 border-white hover:bg-white/30 transition-colors text-lg font-semibold rounded-md">
+            Découvrir la collection
+          </Link>
         </div>
       </section>
 
       {/* Categories Showcase */}
-      <section className="mt-20">
+      <section className="mt-16 px-4 container mx-auto">
         <h2 className="text-2xl font-bold mb-8">Nos catégories</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -194,10 +206,12 @@ const HomePage = () => {
       </section>
       
       {/* Best Sellers */}
-      <section className="mt-20">
+      <section className="mt-16 px-4 container mx-auto">
+        
         <div className="flex items-end justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold">Meilleures ventes</h2>
+            
+            <h2 className="text-2xl font-bold mb-8">Meilleures ventes</h2>
             <p className="text-gray-600 mt-2">Nos produits les plus populaires</p>
           </div>
         </div>

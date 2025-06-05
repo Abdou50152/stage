@@ -142,7 +142,7 @@ export default function Layout({ children }) {
         </div>
       </header>
       
-      <main className="flex-grow container mx-auto px-4 py-8">
+      <main className="flex-grow w-full overflow-x-hidden">
         {children}
       </main>
       
@@ -169,7 +169,7 @@ export default function Layout({ children }) {
                 <li><Link href="/faq" className="text-gray-600 hover:text-pink-600 transition-colors">FAQ</Link></li>
               </ul>
             </div>
-            {/* <div>
+            <div>
               <h3 className="text-lg font-bold mb-4">Newsletter</h3>
               <p className="text-gray-600 mb-4">Abonnez-vous pour recevoir nos offres exclusives.</p>
               <form className="flex">
@@ -183,9 +183,9 @@ export default function Layout({ children }) {
                   className="bg-amber-700 text-white px-4 py-2 rounded-r-md hover:bg-amber-800 transition-colors"
                 >
                   OK
-                </button> */}
-              {/* </form>
-            </div> */}
+                </button>
+              </form>
+            </div>
           </div>
           <div className="mt-12 pt-8 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-600">&copy; {new Date().getFullYear()} ELEGANCE NEZHA. Tous droits réservés.</p>

@@ -212,7 +212,7 @@ const ShopPage = () => {
               <ul className="space-y-2">
                 <li>
                   <button 
-                    className={`w-full text-left px-2 py-1 rounded ${filters.category === '' ? 'bg-pink-100 text-pink-600' : ''}`}
+                    className={`w-full text-left px-2 py-1 rounded ${filters.category === '' ? 'bg-pink-100 text-amber-600' : ''}`}
                     onClick={() => handleCategoryChange('')}
                   >
                     Toutes les catégories
@@ -221,7 +221,7 @@ const ShopPage = () => {
                 {categories.map(category => (
                   <li key={category}>
                     <button 
-                      className={`w-full text-left px-2 py-1 rounded capitalize ${filters.category === category ? 'bg-pink-100 text-pink-600' : ''}`}
+                      className={`w-full text-left px-2 py-1 rounded capitalize ${filters.category === category ? 'bg-pink-100 text-amber-600' : ''}`}
                       onClick={() => handleCategoryChange(category)}
                     >
                       {category}
@@ -259,7 +259,7 @@ const ShopPage = () => {
                       onClick={() => handleColorToggle(color)}
                       className={`px-3 py-1 border rounded-full text-sm ${
                         filters.colors.includes(color) 
-                          ? 'bg-pink-100 border-pink-600 text-pink-600' 
+                          ? 'bg-pink-100 border-amber-600 text-amber-600' 
                           : 'border-gray-300'
                       }`}
                     >
@@ -280,7 +280,7 @@ const ShopPage = () => {
                       onClick={() => handleSizeToggle(size)}
                       className={`w-10 h-10 flex items-center justify-center border rounded-md ${
                         filters.sizes.includes(size) 
-                          ? 'bg-pink-100 border-pink-600 text-pink-600' 
+                          ? 'bg-pink-100 border-amber-600 text-amber-600' 
                           : 'border-gray-300'
                       }`}
                     >
@@ -329,8 +329,8 @@ const ShopPage = () => {
         {/* Contenu principal */}
         <div className="flex-grow">
           {/* En-tête avec options de tri et bouton filtres mobile */}
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-            <h1 className="text-2xl font-bold">Boutique</h1>
+          <div className="flex flex-wrap items-center justify-between mt-8 mb-6">
+            <h1 className="text-2xl font-bold mb-3 mt-4">Boutique</h1>
 
             <div className="flex items-center gap-4">
               <div className="flex items-center">
@@ -339,7 +339,7 @@ const ShopPage = () => {
                   id="sort"
                   value={filters.sortBy}
                   onChange={(e) => handleSortChange(e.target.value)}
-                  className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-600"
+                  className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-600"
                 >
                   <option value="newest">Plus récents</option>
                   <option value="price-low-high">Prix croissant</option>
@@ -365,7 +365,7 @@ const ShopPage = () => {
               {(filters.category || filters.colors.length > 0 || filters.sizes.length > 0 || filters.inStock || filters.onSale) && (
                 <button 
                   onClick={resetFilters} 
-                  className="ml-2 text-pink-600 hover:underline"
+                  className="ml-2 text-amber-600 hover:underline"
                 >
                   Effacer les filtres
                 </button>
@@ -383,7 +383,7 @@ const ShopPage = () => {
               <p className="text-red-500">{error}</p>
               <button 
                 onClick={() => window.location.reload()}
-                className="mt-4 px-4 py-2 bg-pink-600 text-white rounded-md hover:bg-pink-700 transition-colors"
+                className="mt-4 px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors"
               >
                 Réessayer
               </button>
@@ -395,7 +395,7 @@ const ShopPage = () => {
               <p className="text-xl text-gray-600 mb-4">Aucun produit ne correspond aux filtres sélectionnés.</p>
               <button 
                 onClick={resetFilters}
-                className="px-4 py-2 bg-pink-600 text-white rounded-md hover:bg-pink-700 transition-colors"
+                className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors"
               >
                 Réinitialiser les filtres
               </button>
@@ -411,25 +411,25 @@ const ShopPage = () => {
             className="absolute inset-0 bg-black/50"
             onClick={() => setMobileFiltersOpen(false)}
           ></div>
-          <div className="relative w-80 max-w-full bg-white h-full overflow-y-auto ml-auto">
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium">Filtres</h3>
+          <div className="relative w-72 max-w-full bg-white h-full overflow-y-auto ml-auto">
+            <div className="p-3">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-base font-medium">Filtres</h3>
                 <button 
                   onClick={() => setMobileFiltersOpen(false)}
                   className="text-gray-500"
                 >
-                  <X size={20} />
+                  <X size={18} />
                 </button>
               </div>
               
               {/* Contenu des filtres (même que desktop) */}
-              <div className="mb-6">
-                <h3 className="text-lg font-medium mb-4">Catégories</h3>
-                <ul className="space-y-2">
+              <div className="mb-4">
+                <h3 className="text-base font-medium mb-2">Catégories</h3>
+                <ul className="space-y-1">
                   <li>
                     <button 
-                      className={`w-full text-left px-2 py-1 rounded ${filters.category === '' ? 'bg-pink-100 text-pink-600' : ''}`}
+                      className={`w-full text-left px-2 py-1 rounded text-sm ${filters.category === '' ? 'bg-pink-100 text-amber-600' : ''}`}
                       onClick={() => handleCategoryChange('')}
                     >
                       Toutes les catégories
@@ -438,7 +438,7 @@ const ShopPage = () => {
                   {categories.map(category => (
                     <li key={category}>
                       <button 
-                        className={`w-full text-left px-2 py-1 rounded capitalize ${filters.category === category ? 'bg-pink-100 text-pink-600' : ''}`}
+                        className={`w-full text-left px-2 py-1 rounded capitalize text-sm ${filters.category === category ? 'bg-pink-100 text-amber-600' : ''}`}
                         onClick={() => handleCategoryChange(category)}
                       >
                         {category}
@@ -451,19 +451,19 @@ const ShopPage = () => {
               {/* Reste des filtres... */}
               {/* ... */}
               
-              <div className="flex gap-2 mt-6">
+              <div className="flex gap-2 mt-4">
                 <button
                   onClick={() => {
                     resetFilters();
                     setMobileFiltersOpen(false);
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700"
+                  className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md text-gray-700"
                 >
                   Réinitialiser
                 </button>
                 <button
                   onClick={() => setMobileFiltersOpen(false)}
-                  className="flex-1 px-4 py-2 bg-pink-600 text-white rounded-md"
+                  className="flex-1 px-3 py-1.5 text-sm bg-amber-600 text-white rounded-md"
                 >
                   Appliquer
                 </button>

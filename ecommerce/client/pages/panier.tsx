@@ -2,6 +2,7 @@ import React from 'react';
 import Layout from '../components/Layout';
 import { useCart } from '../contexts/CartContext';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const CartPage = () => {
     const { cart, updateQuantity, removeItem, total } = useCart();
@@ -36,13 +37,15 @@ const CartPage = () => {
                             </div>
                         ) : (
                             <div className="space-y-6">
-                                {cart.map(item => (
+                                {cart.map((item) => (
                                     <div key={`${item.id}-${item.color}-${item.size}`} className="flex gap-6 border-b pb-6">
                                         <div className="w-24 h-24 bg-gray-100 rounded">
                                             {item.image && (
-                                                <img 
-                                                    src={item.image} 
+                                                <Image
+                                                    src={item.image}
                                                     alt={item.name}
+                                                    width={100}
+                                                    height={100}
                                                     className="w-full h-full object-cover rounded"
                                                 />
                                             )}

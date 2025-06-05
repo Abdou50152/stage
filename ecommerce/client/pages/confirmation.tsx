@@ -35,7 +35,7 @@ const ConfirmationPage: React.FC = () => {
           <div className="space-y-4">
             <Link
               href="/"
-              className="block w-full bg-blue-500 text-white py-3 px-4 rounded hover:bg-blue-600 transition-colors"
+              className="block w-full bg-amber-700 text-white py-3 px-4 rounded hover:bg-amber-800 transition-colors"
             >
               Retour à l'accueil
             </Link>
