@@ -41,16 +41,30 @@ const ProductDetailPage = () => {
           let sizes = [];
 
           try {
-            if (productData.colors) {
+            if (productData.colors && typeof productData.colors === 'string' && productData.colors.trim() !== '') {
               colors = JSON.parse(productData.colors);
+            } else if (Array.isArray(productData.colors)) {
+              // Si c'est déjà un tableau, utiliser directement
+              colors = productData.colors;
+            } else if (productData.colors && typeof productData.colors === 'object') {
+              // Si c'est déjà un objet, essayer de convertir en tableau si possible
+              console.log('Format de couleurs détecté comme objet:', productData.colors);
+              colors = [];
             }
           } catch (error) {
             console.error('Erreur de parsing des couleurs:', error);
           }
 
           try {
-            if (productData.sizes) {
+            if (productData.sizes && typeof productData.sizes === 'string' && productData.sizes.trim() !== '') {
               sizes = JSON.parse(productData.sizes);
+            } else if (Array.isArray(productData.sizes)) {
+              // Si c'est déjà un tableau, utiliser directement
+              sizes = productData.sizes;
+            } else if (productData.sizes && typeof productData.sizes === 'object') {
+              // Si c'est déjà un objet, essayer de convertir en tableau si possible
+              console.log('Format de tailles détecté comme objet:', productData.sizes);
+              sizes = [];
             }
           } catch (error) {
             console.error('Erreur de parsing des tailles:', error);
@@ -262,19 +276,32 @@ const ProductDetailPage = () => {
             <div className="mb-6">
               <h2 className="text-lg font-medium mb-2">Couleur</h2>
               <div className="flex flex-wrap gap-2">
-                {product.colors.map(color => (
-                  <button
-                    key={color}
-                    onClick={() => setSelectedColor(color)}
-                    className={`px-3 py-1 border rounded-full text-sm ${
-                      selectedColor === color 
-                        ? 'bg-pink-100 border-amber-800 text-amber-800' 
-                        : 'border-gray-300'
-                    }`}
-                  >
-                    {color}
-                  </button>
-                ))}
+                {product.colors.map(color => {
+                  // Gestion du cas où color est un objet ou une chaîne
+                  const colorKey = typeof color === 'object' ? color.id || color.name || JSON.stringify(color) : color;
+                  const colorName = typeof color === 'object' ? (color.name || 'Couleur') : color;
+                  const colorCode = typeof color === 'object' && color.code ? color.code : null;
+                  
+                  return (
+                    <button
+                      key={colorKey}
+                      onClick={() => setSelectedColor(color)}
+                      className={`px-3 py-1 border rounded-full text-sm flex items-center ${
+                        JSON.stringify(selectedColor) === JSON.stringify(color) 
+                          ? 'bg-pink-100 border-amber-800 text-amber-800' 
+                          : 'border-gray-300'
+                      }`}
+                    >
+                      {colorCode && (
+                        <span 
+                          className="w-3 h-3 rounded-full mr-1" 
+                          style={{ backgroundColor: colorCode }}
+                        />
+                      )}
+                      {colorName}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -290,19 +317,25 @@ const ProductDetailPage = () => {
               </div>
               
               <div className="flex flex-wrap gap-2">
-                {product.sizes.map(size => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`w-10 h-10 flex items-center justify-center border rounded-md ${
-                      selectedSize === size 
-                        ? 'bg-pink-100 border-amber-800 text-amber-800' 
-                        : 'border-gray-300'
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
+                {product.sizes.map(size => {
+                  // Gestion du cas où size est un objet ou une chaîne
+                  const sizeKey = typeof size === 'object' ? size.id || size.name || JSON.stringify(size) : size;
+                  const sizeName = typeof size === 'object' ? (size.name || 'Taille') : size;
+                  
+                  return (
+                    <button
+                      key={sizeKey}
+                      onClick={() => setSelectedSize(size)}
+                      className={`w-10 h-10 flex items-center justify-center border rounded-md ${
+                        JSON.stringify(selectedSize) === JSON.stringify(size)
+                          ? 'bg-pink-100 border-amber-800 text-amber-800' 
+                          : 'border-gray-300'
+                      }`}
+                    >
+                      {sizeName}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}

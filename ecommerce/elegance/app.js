@@ -12,6 +12,7 @@ const categoriesRouter = require("./src/routers/categories/categories.routes");
 const productsRouter = require("./src/routers/products/products.routes");
 const adminRouter = require("./src/routers/admin/admin.routes");
 const usersRouter = require("./src/routers/users/users.routes");
+const placeholderRouter = require("./src/routers/placeholder/placeholder.routes");
 const ordersRouter = require("./src/routers/orders/orders.routes");
 const orderProductsRouter = require("./src/routers/orderProducts/orderProducts.routes");
 const colorsRouter = require("./src/routers/colors/colors.routes");
@@ -39,6 +40,7 @@ app.use("/api/colors", colorsRouter);
 app.use("/api/size", sizeRouter);
 app.use("/api/productImages", productImagesRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/placeholder", placeholderRouter);
 
 // Routes sans préfixe /api (pour les nouvelles intégrations)
 app.use("/categories", categoriesRouter);
