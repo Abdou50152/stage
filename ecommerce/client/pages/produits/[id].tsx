@@ -165,13 +165,24 @@ const ProductDetailPage = () => {
   };
 
   const handleAddToCart = () => {
+    // S'assurer que selectedColor et selectedSize sont des chaînes
+    const colorValue = selectedColor ? (typeof selectedColor === 'object'
+      ? (selectedColor.name || selectedColor.label || 'N/A')
+      : selectedColor)
+      : 'N/A';
+      
+    const sizeValue = selectedSize ? (typeof selectedSize === 'object'
+      ? (selectedSize.name || selectedSize.label || 'N/A')
+      : selectedSize)
+      : 'N/A';
+      
     addToCart({
       id: product.id.toString(),
       name: product.name,
       price: product.price,
-      color: selectedColor,
-      size: selectedSize,
-      image: product.image || '/placeholder-product.jpg'
+      color: colorValue,
+      size: sizeValue,
+      image: product.image || '/images/product-placeholder.png'
     });
   };
 

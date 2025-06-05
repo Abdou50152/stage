@@ -46,16 +46,16 @@ export default function Layout({ children }) {
             
             {/* Icons */}
             <div className="flex items-center space-x-6">
-              <button className="text-gray-700 hover:text-pink-600 transition-colors">
+              {/* <button className="text-gray-700 hover:text-pink-600 transition-colors">
                 <Search size={20} />
-              </button>
+              </button> */}
               
               {/* Menu utilisateur conditionnel */}
               {user ? (
                 <div className="relative group">
                   <button className="flex items-center space-x-1 text-gray-700 hover:text-pink-600">
                     <User size={20} />
-                    <span className="hidden md:inline text-sm">{user.name}</span>
+                    <span className="hidden md:inline text-sm">{user.firstName}</span>
                   </button>
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden group-hover:block">
                     <Link href="/compte" className="block px-4 py-2 text-sm text-gray-700 hover:bg-pink-50">
@@ -96,7 +96,7 @@ export default function Layout({ children }) {
             </div>
           </div>
           
-          {/* Mobile Navigation
+          {/* Mobile Navigation */}
           {isMenuOpen && (
             <nav className="md:hidden mt-4 space-y-3 py-4 border-t border-gray-100">
               <Link href="/" className="block px-2 py-2 text-gray-700 hover:text-pink-600 transition-colors">
@@ -137,8 +137,8 @@ export default function Layout({ children }) {
                   Connexion
                 </Link>
               )}
-            </nav> */}
-          {/* )} */}
+            </nav>
+          )}
         </div>
       </header>
       

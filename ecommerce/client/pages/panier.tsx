@@ -50,7 +50,8 @@ const CartPage = () => {
                                         <div className="flex-1">
                                             <h3 className="font-medium">{item.name}</h3>
                                             <p className="text-gray-600 text-sm mt-1">
-                                                Couleur: {item.color}, Taille: {item.size}
+                                                Couleur: {item.color ? (typeof item.color === 'object' ? item.color.name ?? 'N/A' : item.color) : 'N/A'}, 
+                                                Taille: {item.size ? (typeof item.size === 'object' ? item.size.name ?? 'N/A' : item.size) : 'N/A'}
                                             </p>
                                             <p className="text-amber-700 font-medium mt-2">
                                                 {formatPrice(item.price * item.quantity)} ({formatPrice(item.price)} × {item.quantity})

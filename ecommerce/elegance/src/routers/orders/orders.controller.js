@@ -9,6 +9,7 @@ const {
 } = require("../../models/orders/orders.model");
 
 const { getPagination } = require("../../config/query");
+const { createOrderProducts } = require("../../models/orderProducts/orderProducts.model");
 
 // Créer une commande
 const httpCreateOrder = async (req, res, next) => {
@@ -18,9 +19,18 @@ const httpCreateOrder = async (req, res, next) => {
   }
 
   const order = req.body;
-
+const orderProducts = order.body.orderProducts;
   try {
     const newOrder = await createOrder(order);
+
+    orderProducts.forEach(async (orderProduct)=>{
+      await createOrderProducts({
+        orderId: newOrder.id,
+        productId: orderProduct.productId,
+        quantity: orderProduct.quantity,
+        price: orderProduct.price
+      })
+    });
     return res.status(200).json(newOrder);
   } catch (err) {
     next(err);

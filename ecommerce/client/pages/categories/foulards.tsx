@@ -15,48 +15,50 @@ const FoulardsPage = () => {
   const [selectedMaterials, setSelectedMaterials] = useState([]);
   const [sortBy, setSortBy] = useState('popular');
   const [showFilters, setShowFilters] = useState(false);
-  
+
   // Chargement des produits depuis l'API
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        // Récupérer les produits de la catégorie foulards (categoryId=3 pour foulards)
-        const result = await ProductsService.getAllProducts({ categoryId: 3 });
+        // Récupérer tous les produits
+        const result = await ProductsService.getAllProducts({});
         // L'API renvoie un objet {count, products} au lieu d'un tableau direct
         if (result && result.products && Array.isArray(result.products)) {
           // Traiter les données selon la structure de l'API
-          const processedProducts = result.products.map(product => {
-            // Parser les couleurs et tailles qui sont stockées sous forme de chaînes JSON
-            let colors = [];
-            let sizes = [];
-            
-            try {
-              if (product.colors) {
-                colors = JSON.parse(product.colors);
+          const processedProducts = result.products
+            .filter(product => product.categorieId === 2) // Filtrer uniquement les foulards (catégorie 2)
+            .map(product => {
+              // Parser les couleurs et tailles qui sont stockées sous forme de chaînes JSON
+              let colors = [];
+              let sizes = [];
+
+              try {
+                if (product.colors && typeof product.colors === 'string' && product.colors.trim() !== '') {
+                  colors = JSON.parse(product.colors);
+                }
+              } catch (error) {
+                console.error('Erreur de parsing des couleurs:', error);
               }
-            } catch (error) {
-              console.error('Erreur de parsing des couleurs:', error);
-            }
-            
-            try {
-              if (product.sizes) {
-                sizes = JSON.parse(product.sizes);
+
+              try {
+                if (product.sizes && typeof product.sizes === 'string' && product.sizes.trim() !== '') {
+                  sizes = JSON.parse(product.sizes);
+                }
+              } catch (error) {
+                console.error('Erreur de parsing des tailles:', error);
               }
-            } catch (error) {
-              console.error('Erreur de parsing des tailles:', error);
-            }
-            
-            return {
-              ...product,
-              colors,
-              sizes,
-              image: product.imageUrl ? `http://localhost:4000${product.imageUrl}` : null,
-              category: 'foulards',
-              inStock: product.stock > 0
-            };
-          });
-          
+
+              return {
+                ...product,
+                colors,
+                sizes,
+                image: product.imageUrl ? `http://localhost:4000${product.imageUrl}` : null,
+                category: 'foulards',
+                inStock: product.stock > 0
+              };
+            });
+
           setProducts(processedProducts);
         } else {
           console.error('Format de données incorrect:', result);
@@ -69,14 +71,14 @@ const FoulardsPage = () => {
         setLoading(false);
       }
     };
-    
+
     fetchProducts();
   }, []);
-  
+
   // Options disponibles
   const colors = ['Noir', 'Blanc', 'Beige', 'Rose', 'Bleu', 'Doré', 'Multicolore'];
   const materials = ['Coton', 'Satin', 'Soie', 'Mousseline', 'Viscose', 'Jersey'];
-  
+
   // Gestion des filtres
   const handleColorToggle = (color) => {
     setSelectedColors(prev =>

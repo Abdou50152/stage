@@ -26,7 +26,7 @@ const AccessoiresPage = () => {
         if (result && result.products && Array.isArray(result.products)) {
           // Traiter les produits pour avoir un format cohérent
           const processedProducts = result.products
-            .filter(product => product.categorieId === 2) // Filtrer uniquement les accessoires (catégorie 2)
+            .filter(product => product.categorieId === 4) // Filtrer uniquement les accessoires (catégorie 4)
             .map(product => {
               let colors = [];
               let sizes = [];

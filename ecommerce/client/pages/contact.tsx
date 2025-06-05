@@ -57,7 +57,7 @@ const ContactPage = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-medium text-gray-800">Adresse</h3>
-                  <p className="text-gray-600">123 Boulevard Mohammed V<br />Casablanca, Maroc</p>
+                  <p className="text-gray-600">123 Boulevard allal el fassi<br />Marrakech, Maroc</p>
                 </div>
               </div>
               
@@ -77,19 +77,19 @@ const ContactPage = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-medium text-gray-800">Téléphone</h3>
-                  <p className="text-gray-600">+212 5XX XX XX XX</p>
+                  <p className="text-gray-600">+212 524 22 22 22</p>
                 </div>
               </div>
             </div>
             
-            <div className="mt-12">
+            {/* <div className="mt-12">
               <h2 className="text-2xl font-bold text-gray-800 mb-6">Horaires d'ouverture</h2>
               <div className="space-y-2 text-gray-600">
                 <p><span className="font-medium">Lundi - Vendredi:</span> 9h00 - 18h00</p>
                 <p><span className="font-medium">Samedi:</span> 10h00 - 16h00</p>
                 <p><span className="font-medium">Dimanche:</span> Fermé</p>
               </div>
-            </div>
+            </div> */}
           </div>
           
           {/* Formulaire de contact */}
@@ -174,15 +174,15 @@ const ContactPage = () => {
         </div>
         
         {/* Google Maps (à remplacer par une vraie intégration Google Maps si nécessaire) */}
-        <div className="mt-16">
+        {/* <div className="mt-16">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Où nous trouver</h2>
-          <div className="h-96 bg-gray-200 rounded-lg">
+          <div className="h-96 bg-gray-200 rounded-lg"> */}
             {/* Emplacement pour Google Maps */}
-            <div className="w-full h-full flex items-center justify-center">
+            {/* <div className="w-full h-full flex items-center justify-center">
               <p className="text-gray-500">Carte Google Maps à intégrer ici</p>
             </div>
           </div>
-        </div>
+        </div> */}
         
         {/* FAQ rapide */}
         <div className="mt-16">

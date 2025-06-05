@@ -18,7 +18,7 @@ const AboutPage = () => {
         </div>
 
         {/* Notre histoire */}
-        <div className="mb-16">
+        {/* <div className="mb-16">
           <h2 className="text-3xl font-bold text-gray-800 mb-6">Notre Histoire</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div className="aspect-square rounded-lg overflow-hidden">
@@ -40,7 +40,7 @@ const AboutPage = () => {
               </p>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Nos valeurs */}
         <div className="mb-16">
@@ -68,7 +68,7 @@ const AboutPage = () => {
         </div>
 
         {/* Notre équipe */}
-        <div className="mb-16">
+        {/* <div className="mb-16">
           <h2 className="text-3xl font-bold text-gray-800 mb-8">Notre Équipe</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
             <div className="text-center">
@@ -105,7 +105,7 @@ const AboutPage = () => {
               <p className="text-gray-600">Service Client</p>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Engagement qualité */}
         <div className="bg-gray-50 p-8 rounded-lg mb-16">

@@ -119,8 +119,8 @@ export const AdminService = {
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    // Redirect to login page after logout
-    window.location.href = '/login';
+    // Redirect to frontend client site after logout
+    window.location.href = 'http://localhost:5000';
   },
   
   // Check if user is authenticated and is admin
