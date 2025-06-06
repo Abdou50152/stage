@@ -70,7 +70,7 @@ const dbConfig = require("../config/dbConfig");
 
   
   db.sequileze
-    .sync({ force: false }) // Use alter:true to update existing tables with new columns
+    .sync({ alter: true }) // Use alter:true to update existing tables with new columns
     .then(() => console.log("sequelize is running and schema updated!"))
     .catch((err) => console.log(err));
   

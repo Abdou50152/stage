@@ -33,6 +33,12 @@ const CheckoutPage: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
+
+    if (!user || !user.id) {
+      setError('Vous devez être connecté pour passer une commande. Veuillez vous connecter.');
+      setIsSubmitting(false);
+      return;
+    }
     
     try {
       // Vérifier que le panier n'est pas vide
@@ -52,7 +58,7 @@ const CheckoutPage: React.FC = () => {
         total: total,
         status: 'pending' as const,
         ...formData,
-        userId: user?.id || null // Utiliser l'ID de l'utilisateur connecté si disponible
+        userId: user.id // User is confirmed to exist and have an id by this point
       };
 
       console.log('Envoi de la commande à l\'API:', orderData);

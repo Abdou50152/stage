@@ -152,7 +152,57 @@ createAdminIfNotExists()
   .then(() => console.log('Admin account check completed'))
   .catch(err => console.error('Error during admin account check:', err));
 
+
+// User registration function
+const httpRegister = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { full_name, email, password, phone, address, city, country, postal_code } = req.body;
+
+    // Check if user already exists
+    const existingUser = await Users.findOne({ where: { email } });
+    if (existingUser) {
+      throw httpError.Conflict('User with this email already exists');
+    }
+
+    // TODO: Implement password hashing with bcrypt before production
+    // const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await Users.create({
+      full_name,
+      email,
+      password, // Store plain text password (TEMPORARY - VERY INSECURE)
+      phone,
+      address,
+      city,
+      country,
+      postal_code,
+      status: 'active' // Default status
+    });
+
+    // Temporarily create a simple token without jwt
+    // TODO: Use jwt.sign for proper token generation
+    const token = Buffer.from(JSON.stringify({ id: newUser.id, email: newUser.email, role: 'user' })).toString('base64');
+
+    // Remove password from response
+    const userResponse = newUser.toJSON();
+    delete userResponse.password;
+
+    res.status(201).json({
+      token,
+      user: { ...userResponse, role: 'user' }
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   httpLogin,
-  httpGetProfile
+  httpGetProfile,
+  httpRegister // Export the new function
 };

@@ -10,6 +10,7 @@ const {
 
 const { getPagination } = require("../../config/query");
 const { createOrderProducts } = require("../../models/orderProducts/orderProducts.model");
+const httpError = require("http-errors"); // For error handling
 
 // Créer une commande
 const httpCreateOrder = async (req, res, next) => {
@@ -19,18 +20,8 @@ const httpCreateOrder = async (req, res, next) => {
   }
 
   const order = req.body;
-const orderProducts = order.body.orderProducts;
   try {
     const newOrder = await createOrder(order);
-
-    orderProducts.forEach(async (orderProduct)=>{
-      await createOrderProducts({
-        orderId: newOrder.id,
-        productId: orderProduct.productId,
-        quantity: orderProduct.quantity,
-        price: orderProduct.price
-      })
-    });
     return res.status(200).json(newOrder);
   } catch (err) {
     next(err);
@@ -87,10 +78,49 @@ const httpDeleteOrderById = async (req, res, next) => {
   }
 };
 
+// Controller function to add products to an existing order
+const httpAddProductsToOrder = async (req, res, next) => {
+  try {
+    const { orderId } = req.params;
+    const products = req.body.products; // Expecting an array of products
+
+    if (!orderId) {
+      return next(httpError.BadRequest("Order ID is required."));
+    }
+    if (!Array.isArray(products) || products.length === 0) {
+      return next(httpError.BadRequest("Products array is required and cannot be empty."));
+    }
+
+    const addedProducts = [];
+    for (const product of products) {
+      // Map client field names to backend model expected names
+      const newOrderProductData = {
+        orderId: parseInt(orderId, 10),
+        productId: product.product_id, // Client sends product_id
+        quantity: product.quantity,
+        price: product.price,
+        colorName: product.color,    // Client sends color (name)
+        sizeName: product.size       // Client sends size (name)
+      };
+      const createdProductEntry = await createOrderProducts(newOrderProductData);
+      addedProducts.push(createdProductEntry);
+    }
+
+    return res.status(201).json({ 
+      message: "Products added to order successfully", 
+      count: addedProducts.length,
+      data: addedProducts 
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   httpCreateOrder,
   httpGetAllOrders,
   httpGetOrderById,
   httpUpdateOrder,
   httpDeleteOrderById,
+  httpAddProductsToOrder,
 };

@@ -14,6 +14,34 @@ const CartPage = () => {
         return price.toFixed(2) + ' DH';
     };
 
+    const extractName = (value: any): string => {
+        if (value === null || typeof value === 'undefined') {
+            return 'N/A';
+        }
+        if (typeof value === 'object' && value !== null) {
+            // Handles { name: "ActualName" } and also { name: null } or {}
+            return value.name ?? 'N/A';
+        }
+        if (typeof value === 'string') {
+            try {
+                const parsedValue = JSON.parse(value);
+                // After parsing, check type of parsedValue
+                if (typeof parsedValue === 'object' && parsedValue !== null) {
+                    return parsedValue.name ?? 'N/A';
+                }
+                // If parsedValue is a string (e.g. from JSON.parse('"ActualStringValue"'))
+                // or a number/boolean (e.g. JSON.parse('123') -> 123)
+                // Convert to string for display.
+                return String(parsedValue);
+            } catch (error) {
+                // Not valid JSON, so treat the original string as a literal value
+                return value;
+            }
+        }
+        // Fallback for other types if they are not string, object, null, or undefined
+        return 'N/A';
+    };
+
     return (
         <Layout>
             <div className="container mx-auto px-4 py-8">
@@ -53,8 +81,7 @@ const CartPage = () => {
                                         <div className="flex-1">
                                             <h3 className="font-medium">{item.name}</h3>
                                             <p className="text-gray-600 text-sm mt-1">
-                                                Couleur: {item.color ? (typeof item.color === 'object' ? item.color.name ?? 'N/A' : item.color) : 'N/A'}, 
-                                                Taille: {item.size ? (typeof item.size === 'object' ? item.size.name ?? 'N/A' : item.size) : 'N/A'}
+                                                Couleur: {extractName(item.color)}, Taille: {extractName(item.size)}
                                             </p>
                                             <p className="text-amber-700 font-medium mt-2">
                                                 {formatPrice(item.price * item.quantity)} ({formatPrice(item.price)} × {item.quantity})

@@ -21,19 +21,10 @@ export const OrdersService = {
   // Ajouter des produits à une commande
   addProductsToOrder: async (orderId: number, products: Array<{ product_id: number; quantity: number; price: number; color?: string; size?: string; }>): Promise<void> => {
     try {
-      for (const product of products) {
-        const orderProduct = {
-          orderId,
-          productId: product.product_id,
-          quantity: product.quantity,
-          price: product.price,
-          // Ajouter des valeurs par défaut pour les champs obligatoires
-          colorId: product.color ? parseInt(product.color) : 1, // Utiliser la couleur si disponible
-          sizeId: product.size ? parseInt(product.size) : 1    // Utiliser la taille si disponible
-        };
-
-        await api.post('/orderProducts', orderProduct);
-      }
+      // The 'products' array already contains product_id, quantity, price, color, and size from the cart.
+      // The backend controller httpAddProductsToOrder expects a body like { products: [...] }
+      // and will handle mapping these fields (e.g., product_id to productId, color to colorName) for the model function.
+      await api.post(`/orders/${orderId}/products`, { products: products });
     } catch (error) {
       console.error('Erreur lors de l\'ajout des produits à la commande:', error);
       // En cas d'erreur, on stocke quand même les produits dans le localStorage

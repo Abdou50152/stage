@@ -25,15 +25,25 @@ const getAllOrders = async (skip, limit) => {
     include: [
       {
         model: db.users,
-        // attributes: ["id", "fullName", "email"],
+        attributes: ["id", "fullName", "email"], // Specify user attributes needed
       },
       {
         model: db.orderProducts,
-        include:{
-          model:db.products,
-          // attributes:["id","name","price"]
-        },
-        // attributes: ["id", "quantity"],
+        attributes: ["id", "quantity", "price"], // Price here is the price at the time of order
+        include: [ // Array to include multiple associated models for orderProducts
+          {
+            model: db.products,
+            attributes: ["id", "name", "mainImage"], // Add other product fields if needed, e.g., mainImage
+          },
+          {
+            model: db.colors,
+            attributes: ["id", "name"], // Get color name
+          },
+          {
+            model: db.size, // Ensure db.size is the correct model name for sizes
+            attributes: ["id", "name"], // Get size name
+          }
+        ],
       },
     ],
 
