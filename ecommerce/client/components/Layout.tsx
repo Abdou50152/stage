@@ -142,7 +142,7 @@ export default function Layout({ children }) {
         </div>
       </header>
       
-      <main className="flex-grow w-full overflow-x-hidden">
+      <main className="container mx-auto px-4 flex-grow w-full overflow-x-hidden pt-6">
         {children}
       </main>
       

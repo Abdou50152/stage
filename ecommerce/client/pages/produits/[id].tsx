@@ -10,20 +10,46 @@ import SizeGuideModal from '../../components/SizeGuideModal';
 import ProductsService from '../../services/products.service';
 
 const ProductDetailPage = () => {
+  const parseProductOptions = (optionData: any, optionName: string): any[] => {
+    let optionsArray: any[] = [];
+    try {
+      let rawOptions = optionData;
+      if (rawOptions) {
+        if (typeof rawOptions === 'string' && rawOptions.trim() !== '') {
+          rawOptions = JSON.parse(rawOptions);
+        }
+        // At this point, rawOptions is either the parsed object/array or the original object/array
+        if (Array.isArray(rawOptions)) {
+          optionsArray = rawOptions;
+        } else if (typeof rawOptions === 'object' && rawOptions !== null) {
+          // If it's a single object, wrap it in an array
+          optionsArray = [rawOptions];
+        } else if (rawOptions) { // Log only if it was something initially but not array/object
+          console.warn(`Format de ${optionName} inattendu après traitement:`, rawOptions);
+        }
+      }
+    } catch (parseError) {
+      console.error(`Erreur de parsing JSON pour ${optionName}:`, parseError);
+      // optionsArray remains []
+    }
+    return optionsArray;
+  };
+
   const router = useRouter();
   const { id } = router.query;
   const { addToCart } = useCart();
 
   // États pour le produit et le chargement
-  const [product, setProduct] = useState(null);
+  const [product, setProduct] = useState<any | null>(null);
   const [similarProducts, setSimilarProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // State for selections
   const [quantity, setQuantity] = useState(1);
-  const [selectedColor, setSelectedColor] = useState('');
-  const [selectedSize, setSelectedSize] = useState('');
+  const [selectedColor, setSelectedColor] = useState<any | null>(null);
+  const [selectedSize, setSelectedSize] = useState<any | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null); // For main image display
 
   // Récupérer le produit depuis l'API
   useEffect(() => {
@@ -40,47 +66,69 @@ const ProductDetailPage = () => {
           let colors = [];
           let sizes = [];
 
-          try {
-            if (productData.colors && typeof productData.colors === 'string' && productData.colors.trim() !== '') {
-              colors = JSON.parse(productData.colors);
-            } else if (Array.isArray(productData.colors)) {
-              // Si c'est déjà un tableau, utiliser directement
-              colors = productData.colors;
-            } else if (productData.colors && typeof productData.colors === 'object') {
-              // Si c'est déjà un objet, essayer de convertir en tableau si possible
-              console.log('Format de couleurs détecté comme objet:', productData.colors);
-              colors = [];
-            }
-          } catch (error) {
-            console.error('Erreur de parsing des couleurs:', error);
-          }
+colors = parseProductOptions(productData.colors, 'couleurs du produit principal');
 
-          try {
-            if (productData.sizes && typeof productData.sizes === 'string' && productData.sizes.trim() !== '') {
-              sizes = JSON.parse(productData.sizes);
-            } else if (Array.isArray(productData.sizes)) {
-              // Si c'est déjà un tableau, utiliser directement
-              sizes = productData.sizes;
-            } else if (productData.sizes && typeof productData.sizes === 'object') {
-              // Si c'est déjà un objet, essayer de convertir en tableau si possible
-              console.log('Format de tailles détecté comme objet:', productData.sizes);
-              sizes = [];
+sizes = parseProductOptions(productData.sizes, 'tailles du produit principal');
+
+          // NEW: Process gallery images
+          let galleryImages: string[] = [];
+          if (productData.images && Array.isArray(productData.images) && productData.images.length > 0) {
+            galleryImages = productData.images.map((img: any) => 
+              img.url ? `http://localhost:4000${img.url}` : null // Keep null for filtering
+            ).filter(url => url !== null) as string[]; // Filter out nulls and assert type
+            // If after filtering, gallery is empty but there was an imageUrl, use it
+            if (galleryImages.length === 0 && productData.imageUrl) {
+              galleryImages = [`http://localhost:4000${productData.imageUrl}`];
             }
-          } catch (error) {
-            console.error('Erreur de parsing des tailles:', error);
+          } else if (typeof productData.imageUrl === 'string' && productData.imageUrl.trim() !== '') {
+            if (productData.imageUrl.startsWith('/')) {
+              galleryImages = [`http://localhost:4000${productData.imageUrl}`];
+            } else if (productData.imageUrl.startsWith('http')) {
+              // It might already be a full URL
+              galleryImages = [productData.imageUrl];
+              console.log('productData.imageUrl seems to be a full URL already:', productData.imageUrl);
+            } else {
+              // It's a non-empty string but not a relative path starting with / or a full http URL
+              console.warn('productData.imageUrl has an unexpected format:', productData.imageUrl, 'Will not use for gallery.');
+              // galleryImages remains empty from this branch, relying on later placeholder logic if needed
+            }
           }
 
           const processedProduct = {
             ...productData,
             colors,
             sizes,
-            image: productData.imageUrl ? `http://localhost:4000${productData.imageUrl}` : null,
+            galleryImages: galleryImages, // Store all image URLs
+            image: galleryImages.length > 0 ? galleryImages[0] : `http://localhost:4000/api/placeholder/800/800?text=${productData.name || 'Produit'}`, // Main image is the first or placeholder
             inStock: productData.stock > 0
           };
 
           setProduct(processedProduct);
-          setSelectedColor(colors[0] || '');
-          setSelectedSize(sizes[0] || '');
+
+          // Set selected image for the main display
+          if (galleryImages.length > 0 && galleryImages[0]) {
+            setSelectedImage(galleryImages[0]);
+          } else if (typeof productData.imageUrl === 'string' && productData.imageUrl.trim() !== '' && productData.imageUrl.startsWith('/')) {
+            const directImageUrl = `http://localhost:4000${productData.imageUrl}`;
+            setSelectedImage(directImageUrl);
+            // Also ensure galleryImages has this if it was missed
+            if (galleryImages.length === 0) {
+              processedProduct.galleryImages = [directImageUrl]; // Mutating processedProduct here, ensure it's intended or handle differently
+            }
+          } else {
+            const placeholder = `http://localhost:4000/api/placeholder/800/800?text=${productData.name || 'Produit'}`;
+            setSelectedImage(placeholder);
+          }
+          if (colors && colors.length > 0) {
+            setSelectedColor(colors[0]);
+          } else {
+            setSelectedColor(null);
+          }
+          if (sizes && sizes.length > 0) {
+            setSelectedSize(sizes[0]);
+          } else {
+            setSelectedSize(null);
+          }
 
           // Récupérer les produits similaires de la même catégorie
           if (productData.categorieId) {
@@ -94,11 +142,8 @@ const ProductDetailPage = () => {
               const filteredProducts = similarProductsData
                 .filter(p => p.id !== Number(id))
                 .map(p => {
-                  let pColors = [];
-                  let pSizes = [];
-
-                  try { if (p.colors) pColors = JSON.parse(p.colors); } catch {}
-                  try { if (p.sizes) pSizes = JSON.parse(p.sizes); } catch {}
+                  const pColors = parseProductOptions(p.colors, `couleurs pour produit similaire ${p.id}`);
+                  const pSizes = parseProductOptions(p.sizes, `tailles pour produit similaire ${p.id}`);
 
                   return {
                     ...p,
@@ -166,15 +211,9 @@ const ProductDetailPage = () => {
 
   const handleAddToCart = () => {
     // S'assurer que selectedColor et selectedSize sont des chaînes
-    const colorValue = selectedColor ? (typeof selectedColor === 'object'
-      ? (selectedColor.name || selectedColor.label || 'N/A')
-      : selectedColor)
-      : 'N/A';
+    const colorValue = selectedColor ? (typeof selectedColor === 'object' ? (selectedColor.name || selectedColor.label) : selectedColor) : 'N/A';
       
-    const sizeValue = selectedSize ? (typeof selectedSize === 'object'
-      ? (selectedSize.name || selectedSize.label || 'N/A')
-      : selectedSize)
-      : 'N/A';
+    const sizeValue = selectedSize ? (typeof selectedSize === 'object' ? (selectedSize.name || selectedSize.label) : selectedSize) : 'N/A';
       
     addToCart({
       id: product.id.toString(),
@@ -189,7 +228,7 @@ const ProductDetailPage = () => {
   return (
     <Layout>
       {/* Breadcrumb */}
-      <div className="flex items-center text-sm text-gray-500 mb-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center text-sm text-gray-500 mb-6">
         <Link href="/" className="hover:text-pink-600 transition-colors">Accueil</Link>
         <ChevronRight size={16} className="mx-2" />
         <Link href="/boutique" className="hover:text-pink-600 transition-colors">Boutique</Link>
@@ -199,35 +238,53 @@ const ProductDetailPage = () => {
         <span className="text-gray-900 font-medium truncate">{product.name}</span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+      {/* Similar products */}
+      {similarProducts.length > 0 && (
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-12">
+          <h2 className="text-xl font-bold mb-6">Vous pourriez aussi aimer</h2>
+          <ProductGrid products={similarProducts} />
+        </section>
+      )}
+
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-10 px-4 sm:px-6 lg:px-8">
         {/* Product images */}
-        <div>
-          <div className="bg-gray-100 rounded-lg overflow-hidden mb-4 aspect-square">
+        <div className="md:col-span-2">
+          {/* Main Image */}
+          <div className="bg-gray-100 rounded-xl overflow-hidden mb-4 aspect-square shadow-md transition-all duration-300 ease-in-out">
             <img 
-              src={product.image || `http://localhost:4000/api/placeholder/800/800?text=${product.name}`} 
-              alt={product.name} 
+              src={selectedImage || `http://localhost:4000/api/placeholder/800/800?text=${product.name || 'Produit'}`} 
+              alt={product.name || 'Image du produit'} 
               className="w-full h-full object-cover"
               onError={(e) => {
-                e.currentTarget.src = `http://localhost:4000/api/placeholder/800/800?text=${product.name}`;
+                e.currentTarget.src = `http://localhost:4000/api/placeholder/800/800?text=${product.name || 'Erreur'}`;
               }}
             />
           </div>
           {/* Thumbnails */}
-          <div className="grid grid-cols-4 gap-2">
-            {[...Array(4)].map((_, index) => (
-              <div key={index} className="bg-gray-100 rounded-lg overflow-hidden aspect-square">
-                <img 
-                  src={`http://localhost:4000/api/placeholder/200/200?text=Vue ${index + 1}`} 
-                  alt={`${product.name} vue ${index + 1}`} 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ))}
-          </div>
+          {product.galleryImages && product.galleryImages.length > 1 && (
+            <div className="grid grid-cols-4 gap-3">
+              {product.galleryImages.map((imgUrl: string, index: number) => (
+                <div 
+                  key={index} 
+                  className={`bg-gray-100 rounded-md overflow-hidden aspect-square shadow-sm hover:opacity-80 transform transition-all duration-200 ease-in-out cursor-pointer border-2 ${selectedImage === imgUrl ? 'border-amber-600' : 'border-transparent hover:border-amber-400'}`}
+                  onClick={() => setSelectedImage(imgUrl)}
+                >
+                  <img 
+                    src={imgUrl} 
+                    alt={`${product.name} vue ${index + 1}`} 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = `http://localhost:4000/api/placeholder/200/200?text=Img ${index + 1}`;
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         
         {/* Product details */}
-        <div>
+        <div className="md:col-span-3">
           {/* Badges */}
           <div className="flex space-x-2 mb-2">
             {product.isNew && (
@@ -239,58 +296,37 @@ const ProductDetailPage = () => {
           </div>
           
           {/* Title and price */}
-          <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
+          <h1 className="text-xl font-bold mb-2">{product.name}</h1>
           
           <div className="flex items-center gap-4 mb-4">
             {product.originalPrice ? (
               <div className="flex items-center gap-2">
-                <span className="text-xl font-bold text-amber-600">{product.price.toFixed(2)} DH</span>
+                <span className="text-base font-bold text-amber-600">{product.price.toFixed(2)} DH</span>
                 <span className="text-gray-500 line-through">{product.originalPrice.toFixed(2)} DH</span>
                 <span className="bg-pink-100 text-amber-700 text-sm px-2 py-0.5 rounded">
                   {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% off
                 </span>
               </div>
             ) : (
-              <span className="text-xl font-bold text-amber-700">{product.price.toFixed(2)} DH</span>
+              <span className="text-base font-bold text-amber-700">{product.price.toFixed(2)} DH</span>
             )}
           </div>
           
-          {/* Rating */}
-          <div className="flex items-center gap-2 mb-6">
-            <div className="flex">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  size={16}
-                  className={i < product.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
-                />
-              ))}
-            </div>
-            <span className="text-sm text-gray-600">4.8 (120 avis)</span>
-          </div>
+
           
           <hr className="my-6" />
           
-          {/* Description */}
-        <div className="mb-6">
-            <h2 className="text-lg font-medium mb-2">Description</h2>
-            <p className="text-gray-600">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, 
-              nunc ut aliquam ultricies, nunc nisl aliquet nunc, ut aliquam nisl nisl 
-              vitae nisl. Sed euismod, nunc ut aliquam ultricies, nunc nisl aliquet 
-              nunc, ut aliquam nisl nisl vitae nisl.
-            </p>
-          </div>
+
           
           {/* Color options */}
           {product.colors && product.colors.length > 0 && (
             <div className="mb-6">
-              <h2 className="text-lg font-medium mb-2">Couleur</h2>
+              <h2 className="text-base font-medium mb-2">Couleur</h2>
               <div className="flex flex-wrap gap-2">
                 {product.colors.map(color => {
                   // Gestion du cas où color est un objet ou une chaîne
                   const colorKey = typeof color === 'object' ? color.id || color.name || JSON.stringify(color) : color;
-                  const colorName = typeof color === 'object' ? (color.name || 'Couleur') : color;
+                  const colorName = typeof color === 'object' ? (color.name || color.label) : color;
                   const colorCode = typeof color === 'object' && color.code ? color.code : null;
                   
                   return (
@@ -298,7 +334,7 @@ const ProductDetailPage = () => {
                       key={colorKey}
                       onClick={() => setSelectedColor(color)}
                       className={`px-3 py-1 border rounded-full text-sm flex items-center ${
-                        JSON.stringify(selectedColor) === JSON.stringify(color) 
+                        selectedColor === color 
                           ? 'bg-pink-100 border-amber-800 text-amber-800' 
                           : 'border-gray-300'
                       }`}
@@ -321,7 +357,7 @@ const ProductDetailPage = () => {
           {product.sizes && product.sizes.length > 0 && (
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-lg font-medium">Taille</h2>
+                <h2 className="text-base font-medium">Taille</h2>
                     <SizeGuideModal /> 
                     
                 {/* <button className="text-sm text-pink-600 hover:underline">Guide des tailles</button> */}
@@ -331,14 +367,14 @@ const ProductDetailPage = () => {
                 {product.sizes.map(size => {
                   // Gestion du cas où size est un objet ou une chaîne
                   const sizeKey = typeof size === 'object' ? size.id || size.name || JSON.stringify(size) : size;
-                  const sizeName = typeof size === 'object' ? (size.name || 'Taille') : size;
+                  const sizeName = typeof size === 'object' ? (size.name || size.label) : size;
                   
                   return (
                     <button
                       key={sizeKey}
                       onClick={() => setSelectedSize(size)}
                       className={`w-10 h-10 flex items-center justify-center border rounded-md ${
-                        JSON.stringify(selectedSize) === JSON.stringify(size)
+                        selectedSize === size
                           ? 'bg-pink-100 border-amber-800 text-amber-800' 
                           : 'border-gray-300'
                       }`}
@@ -353,7 +389,7 @@ const ProductDetailPage = () => {
           
           {/* Quantity */}
           <div className="mb-6">
-            <h2 className="text-lg font-medium mb-2">Quantité</h2>
+            <h2 className="text-base font-medium mb-2">Quantité</h2>
             <div className="flex items-center">
               <button 
                 onClick={decreaseQuantity}
@@ -373,13 +409,24 @@ const ProductDetailPage = () => {
               </button>
             </div>
           </div>
+
+          {/* Description */}
+        <div className="mb-6">
+            <h2 className="text-base font-medium mb-2">Description</h2>
+            <p className="text-sm text-gray-600">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, 
+              nunc ut aliquam ultricies, nunc nisl aliquet nunc, ut aliquam nisl nisl 
+              vitae nisl. Sed euismod, nunc ut aliquam ultricies, nunc nisl aliquet 
+              nunc, ut aliquam nisl nisl vitae nisl.
+            </p>
+          </div>
           
           {/* Actions */}
           <div className="flex items-center gap-4 mb-8">
             <button 
               onClick={handleAddToCart}
               disabled={!product.inStock}
-              className={`flex-grow flex items-center justify-center gap-2 px-6 py-3 rounded-md ${
+              className={`flex-grow flex items-center justify-center gap-2 px-6 py-3 rounded-lg shadow hover:shadow-md transform transition-all duration-300 ease-in-out ${
                 product.inStock 
                   ? 'bg-amber-800 text-white hover:bg-amber-700' 
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -388,37 +435,37 @@ const ProductDetailPage = () => {
               <ShoppingBag size={20} />
               {product.inStock ? 'Ajouter au panier' : 'En rupture de stock'}
             </button>
-            <button className="w-12 h-12 flex items-center justify-center border border-gray-300 rounded-md hover:bg-gray-100 transition-colors">
+            <button className="w-12 h-12 flex items-center justify-center border border-gray-300 rounded-lg shadow-sm hover:shadow-md hover:bg-gray-100 hover:text-amber-700 transition-all duration-200 ease-in-out">
               <Heart size={20} />
             </button>
-            <button className="w-12 h-12 flex items-center justify-center border border-gray-300 rounded-md hover:bg-gray-100 transition-colors">
+            <button className="w-12 h-12 flex items-center justify-center border border-gray-300 rounded-lg shadow-sm hover:shadow-md hover:bg-gray-100 hover:text-amber-700 transition-all duration-200 ease-in-out">
               <Share size={20} />
             </button>
           </div>
           
           {/* Additional info */}
           <div className="space-y-4">
-            <div className="flex items-start gap-3">
-              <div className="text-gray-600">
-                <Truck size={20} />
+            <div className="flex items-start gap-3 py-3">
+              <div className="text-amber-700">
+                <Truck size={24} />
               </div>
               <div>
                 <h3 className="font-medium">Livraison disponible</h3>
                 <p className="text-sm text-gray-600">Paiement à la livraison disponible</p>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <div className="text-gray-600">
-                <Package size={20} />
+            <div className="flex items-start gap-3 py-3">
+              <div className="text-amber-700">
+                <Package size={24} />
               </div>
               <div>
                 <h3 className="font-medium">Produit authentique</h3>
                 <p className="text-sm text-gray-600">Qualité garantie</p>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <div className="text-gray-600">
-                <RefreshCcw size={20} />
+            <div className="flex items-start gap-3 py-3">
+              <div className="text-amber-700">
+                <RefreshCcw size={24} />
               </div>
               <div>
                 <h3 className="font-medium">Retours faciles</h3>
@@ -429,13 +476,7 @@ const ProductDetailPage = () => {
         </div>
       </div>
       
-      {/* Similar products */}
-      {similarProducts.length > 0 && (
-        <section className="mt-16">
-          <h2 className="text-2xl font-bold mb-6">Vous pourriez aussi aimer</h2>
-          <ProductGrid products={similarProducts} />
-        </section>
-      )}
+
     </Layout>
   );
 };

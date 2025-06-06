@@ -1,9 +1,11 @@
 const db = require("..");
+const { getProductImages, createProductImage: addProductImageToGallery, setPrimaryImage: setProductPrimaryImage } = require('../productImages/productImages.model');
 const httpError = require("http-errors");
 
 const Products = db.products;
 const Colors = db.colors;
 const Sizes = db.size;
+const ProductImages = db.productImages; // Added for include
 
   //Create Products
   const createProducts = async (newProducts) => {
@@ -28,32 +30,85 @@ const Sizes = db.size;
       include: [
         { model: db.categories },
         { model: Colors },
-        { model: Sizes }
+        { model: Sizes },
+        { model: ProductImages } 
       ]
     });
     const countPromise = Products.count();
-    const [products, count] = await Promise.all([productsPromise, countPromise]);
-    return { count, products };
+    let [fetchedProducts, count] = await Promise.all([productsPromise, countPromise]);
+
+    // Process products to add a main imageUrl based on associated product_images
+    const processedProducts = fetchedProducts.map(p => {
+      const productJson = p.toJSON(); // Work with a plain object
+      let mainImageUrl = productJson.imageUrl; // Default to existing imageUrl on product table
+      const images = productJson.ProductImages || productJson.productImages || []; // Try common default names (pluralized model name, or exact model name if not pluralized by Sequelize)
+
+      const primaryImage = images.find(img => img.isPrimary);
+      if (primaryImage && primaryImage.imageUrl) {
+        mainImageUrl = primaryImage.imageUrl;
+      } else if (images.length > 0 && images[0].imageUrl) {
+        mainImageUrl = images[0].imageUrl; // Fallback to the first image in the gallery
+      }
+      
+      return {
+        ...productJson,
+        imageUrl: mainImageUrl,
+        images: images.map(img => ({ // Ensure 'images' array is consistently structured if needed by frontend
+          id: img.id,
+          url: img.imageUrl,
+          isPrimary: img.isPrimary,
+          order: img.order
+        }))
+      };
+    });
+
+    return { count, products: processedProducts };
   };
 
   
   //Get Products by ID
   const getProductsById = async (id) => {
-    const products = await Products.findOne({
+    const product = await Products.findOne({
       where: {
         id,
       },
       include: [
         { model: db.categories },
-        { model: Colors },
-        { model: Sizes }
+        { model: Colors }, 
+        { model: Sizes },  
+        { model: db.productImages } 
       ]
     });
-    if (!products) {
+
+    if (!product) {
       throw httpError.NotFound("Product Not found");
-    } else {
-      return products;
     }
+
+    let processedGalleryImages = [];
+    if (product.productImages && product.productImages.length > 0) {
+      processedGalleryImages = product.productImages.map(img => ({
+        id: img.id,
+        url: img.imageUrl, 
+        isPrimary: img.isPrimary || false, 
+      }));
+    }
+
+    let mainImageUrl = product.imageUrl; 
+
+    if (processedGalleryImages.length > 0) {
+      const primaryImage = processedGalleryImages.find(img => img.isPrimary);
+      if (primaryImage) {
+        mainImageUrl = primaryImage.url; 
+      } else if (!mainImageUrl) {
+        mainImageUrl = processedGalleryImages[0].url; 
+      }
+    }
+
+    const plainProduct = product.get({ plain: true });
+    plainProduct.images = processedGalleryImages; 
+    plainProduct.imageUrl = mainImageUrl; 
+
+    return plainProduct;
   };
   
   //Update Products
@@ -155,11 +210,31 @@ const Sizes = db.size;
     return { message: "Size removed from product successfully" };
   };
 
-  // Update product image
+  // Add product image to its gallery
   const updateProductImage = async (productId, imageUrl) => {
-    const product = await getProductsById(productId);
-    await product.update({ imageUrl });
-    return { message: "Image updated successfully", imageUrl };
+    // Add the new image to the ProductImages table
+    const newImage = await addProductImageToGallery(productId, { imageUrl: imageUrl, order: 0 }); // order can be managed better
+
+    // Check if this is the only image or if no other primary image exists
+    const existingImages = await getProductImages(productId);
+    const primaryImageExists = existingImages.some(img => img.isPrimary && img.id !== newImage.id);
+
+    if (!primaryImageExists) {
+      await setProductPrimaryImage(newImage.id, productId);
+      // Update the main product's imageUrl field for consistency / direct access
+      const product = await Products.findByPk(productId);
+      if (product) {
+        await product.update({ imageUrl: newImage.imageUrl });
+      }
+      return { message: "Image added and set as primary successfully", imageUrl: newImage.imageUrl, imageId: newImage.id };
+    } else {
+       // If a primary image already exists, we just add this one. 
+       // The main product.imageUrl might not change unless explicitly set.
+       // For now, let's update the product's primary imageUrl if this new one is set as primary.
+       // This part can be refined based on exact primary image handling requirements.
+    }
+
+    return { message: "Image added to gallery successfully", imageUrl: newImage.imageUrl, imageId: newImage.id };
   };
 
   module.exports = {

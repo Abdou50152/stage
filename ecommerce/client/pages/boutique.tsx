@@ -327,10 +327,10 @@ const ShopPage = () => {
         </aside>
 
         {/* Contenu principal */}
-        <div className="flex-grow">
+        <div className="flex-grow ml-4">
           {/* En-tête avec options de tri et bouton filtres mobile */}
-          <div className="flex flex-wrap items-center justify-between mt-8 mb-6">
-            <h1 className="text-2xl font-bold mb-3 mt-4">Boutique</h1>
+          <div className="flex flex-wrap items-center justify-between mt-3 mb-3">
+            <h1 className="text-2xl font-bold mb-1 mt-0">Boutique</h1>
 
             <div className="flex items-center gap-4">
               <div className="flex items-center">
