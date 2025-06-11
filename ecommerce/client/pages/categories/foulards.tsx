@@ -135,100 +135,10 @@ const FoulardsPage = () => {
         </div>
       </div>
       
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 mb-12">
         
         {/* Filtres et Grille de produits */}
         <div className="flex flex-col md:flex-row gap-6">
-          {/* Filtres (mobile) */}
-          <div className="md:hidden flex justify-between items-center mb-4">
-            <button 
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 text-gray-700 hover:text-amber-700"
-            >
-              <Filter size={18} />
-              <span>Filtres</span>
-              {showFilters ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-            </button>
-            
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Trier par:</span>
-              <select 
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="p-1 border rounded text-sm"
-              >
-                <option value="popular">Popularité</option>
-                <option value="price-low">Prix croissant</option>
-                <option value="price-high">Prix décroissant</option>
-                <option value="newest">Nouveautés</option>
-              </select>
-            </div>
-          </div>
-          
-          {/* Filtres (desktop et mobile expanded) */}
-          <div className={`${showFilters ? 'block' : 'hidden'} md:block w-full md:w-64 space-y-6`}>
-            <div>
-              <h3 className="text-lg font-medium mb-3">Filtres</h3>
-              
-              {/* Prix */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium mb-2">Prix (DH)</h4>
-                <div className="flex gap-2 items-center">
-                  <input 
-                    type="number" 
-                    value={priceRange[0]} 
-                    onChange={(e) => setPriceRange([parseInt(e.target.value), priceRange[1]])}
-                    className="w-20 p-1 border rounded"
-                    min="0"
-                  />
-                  <span>à</span>
-                  <input 
-                    type="number" 
-                    value={priceRange[1]} 
-                    onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                    className="w-20 p-1 border rounded"
-                    min={priceRange[0]}
-                  />
-                </div>
-              </div>
-              
-              {/* Couleurs */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium mb-2">Couleurs</h4>
-                <div className="flex flex-wrap gap-2">
-                  {colors.map(color => (
-                    <label key={color} className="flex items-center gap-1 cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={selectedColors.includes(color)}
-                        onChange={() => handleColorToggle(color)}
-                        className="accent-amber-700"
-                      />
-                      <span className="text-sm">{color}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Matières */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium mb-2">Matières</h4>
-                <div className="flex flex-wrap gap-2">
-                  {materials.map(material => (
-                    <label key={material} className="flex items-center gap-1 cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={selectedMaterials.includes(material)}
-                        onChange={() => handleMaterialToggle(material)}
-                        className="accent-amber-700"
-                      />
-                      <span className="text-sm">{material}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
           
           {/* Contenu principal */}
           <div className="flex-1">
@@ -276,8 +186,8 @@ const FoulardsPage = () => {
               )
             )}
           </div>
-        </div>
-      </div>
+        </div> {/* Closes flex flex-col md:flex-row gap-6 */}
+        </div> {/* Closes container mx-auto px-4 */}
     </Layout>
   );
 };

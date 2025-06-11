@@ -12,7 +12,6 @@ const AccessoiresPage = () => {
   
   // État pour les filtres
   const [priceRange, setPriceRange] = useState([0, 200]);
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('popular');
   const [showFilters, setShowFilters] = useState(false);
 
@@ -24,9 +23,26 @@ const AccessoiresPage = () => {
         
         // L'API renvoie un objet {count, products} au lieu d'un tableau direct
         if (result && result.products && Array.isArray(result.products)) {
+          console.log("AccessoiresPage - Total products fetched from API:", result.products.length);
+          result.products.forEach((product, index) => {
+            // console.log(`AccessoiresPage - Raw Product ${index + 1} (ID: ${product.id}):`, JSON.stringify(product, null, 2)); // Optional: keep for full raw data
+            if (product.categorie && product.categorie.name) {
+              console.log(`AccessoiresPage - Product ${index + 1} (ID: ${product.id}) Category Name (from product.categorie.name): ${product.categorie.name}`);
+            } else {
+              console.log(`AccessoiresPage - Product ${index + 1} (ID: ${product.id}) has no 'product.categorie.name' property.`);
+            }
+          });
+
           // Traiter les produits pour avoir un format cohérent
           const processedProducts = result.products
-            .filter(product => product.categorieId === 4) // Filtrer uniquement les accessoires (catégorie 4)
+            .filter(product => {
+              let categoryName = null;
+              if (product.categorie && product.categorie.name) { // CORRECTED: Check product.categorie.name
+                categoryName = product.categorie.name.toLowerCase();
+              }
+              // console.log(`AccessoiresPage - Filtering product ID ${product.id}: effective categoryName = ${categoryName}, target = 'accessoiree'`);
+              return categoryName === 'accessoiree';
+            })
             .map(product => {
               let colors = [];
               let sizes = [];
@@ -58,7 +74,7 @@ const AccessoiresPage = () => {
                 isSale: product.isSale === 1 || product.price < product.originalPrice
               };
             });
-          
+          console.log("AccessoiresPage - Processed products (after map):", JSON.stringify(processedProducts, null, 2));
           setAccessoiresProducts(processedProducts);
         }
       } catch (err) {
@@ -72,26 +88,10 @@ const AccessoiresPage = () => {
     fetchProducts();
   }, []);
   
-  // Options disponibles
-  const colors = ['Doré', 'Argent', 'Noir', 'Blanc', 'Rose', 'Multicolore'];
-  
-  // Gestion des filtres
-  const handleColorToggle = (color) => {
-    setSelectedColors(prev =>
-      prev.includes(color)
-        ? prev.filter(c => c !== color)
-        : [...prev, color]
-    );
-  };
-  
   // Filtrage des produits
   const filteredProducts = accessoiresProducts.filter(product => {
     const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
-    
-    const matchesColor = selectedColors.length === 0 || 
-      (product.colors && product.colors.some(color => selectedColors.includes(color)));
-    
-    return matchesPrice && matchesColor;
+    return matchesPrice;
   });
   
   // Tri des produits
@@ -107,6 +107,7 @@ const AccessoiresPage = () => {
         return b.rating - a.rating; // populaires en premier par défaut
     }
   });
+  console.log("AccessoiresPage - Sorted products (before render):", JSON.stringify(sortedProducts, null, 2));
 
   return (
     <Layout>
@@ -120,105 +121,9 @@ const AccessoiresPage = () => {
         </div>
       </div>
       
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 mb-12">
         
-        {/* Filtres et Grille de produits */}
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Filtres (mobile) */}
-          <div className="md:hidden flex justify-between items-center mb-4">
-            <button 
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 text-gray-700 hover:text-amber-700"
-            >
-              <Filter size={18} />
-              <span>Filtres</span>
-              {showFilters ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-            </button>
-            
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Trier par:</span>
-              <select 
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="p-1 border rounded text-sm"
-              >
-                <option value="popular">Popularité</option>
-                <option value="price-low">Prix croissant</option>
-                <option value="price-high">Prix décroissant</option>
-                <option value="newest">Nouveautés</option>
-              </select>
-            </div>
-          </div>
-          
-          {/* Filtres (desktop et mobile expanded) */}
-          <div className={`${showFilters ? 'block' : 'hidden'} md:block w-full md:w-64 space-y-6`}>
-            <div>
-              <h3 className="text-lg font-medium mb-3">Filtres</h3>
-              
-              {/* Prix */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium mb-2">Prix (DH)</h4>
-                <div className="flex gap-2 items-center">
-                  <input 
-                    type="number" 
-                    value={priceRange[0]} 
-                    onChange={(e) => setPriceRange([parseInt(e.target.value), priceRange[1]])}
-                    className="w-20 p-1 border rounded"
-                    min="0"
-                  />
-                  <span>à</span>
-                  <input 
-                    type="number" 
-                    value={priceRange[1]} 
-                    onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                    className="w-20 p-1 border rounded"
-                    min={priceRange[0]}
-                  />
-                </div>
-              </div>
-              
-              {/* Couleurs */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium mb-2">Couleurs</h4>
-                <div className="flex flex-wrap gap-2">
-                  {colors.map(color => (
-                    <label key={color} className="flex items-center gap-1 cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={selectedColors.includes(color)}
-                        onChange={() => handleColorToggle(color)}
-                        className="accent-amber-700"
-                      />
-                      <span className="text-sm">{color}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Types d'accessoires */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium mb-2">Type</h4>
-                <div className="flex flex-wrap gap-2">
-                  <label className="flex items-center gap-1 cursor-pointer">
-                    <input type="checkbox" className="accent-amber-700" />
-                    <span className="text-sm">Bijoux</span>
-                  </label>
-                  <label className="flex items-center gap-1 cursor-pointer">
-                    <input type="checkbox" className="accent-amber-700" />
-                    <span className="text-sm">Sacs</span>
-                  </label>
-                  <label className="flex items-center gap-1 cursor-pointer">
-                    <input type="checkbox" className="accent-amber-700" />
-                    <span className="text-sm">Ceintures</span>
-                  </label>
-                  <label className="flex items-center gap-1 cursor-pointer">
-                    <input type="checkbox" className="accent-amber-700" />
-                    <span className="text-sm">Autres</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* Contenu principal */}
           
           {/* Contenu principal */}
           <div className="flex-1">
@@ -257,7 +162,6 @@ const AccessoiresPage = () => {
                 <button 
                   onClick={() => {
                     setPriceRange([0, 200]);
-                    setSelectedColors([]);
                   }}
                   className="mt-4 text-amber-700 hover:text-amber-800"
                 >
@@ -266,7 +170,6 @@ const AccessoiresPage = () => {
               </div>
             )}
           </div>
-        </div>
       </div>
     </Layout>
   );

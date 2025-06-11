@@ -108,7 +108,7 @@ const HomePage = () => {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative w-screen h-screen overflow-hidden -mt-8 -mx-[calc((100vw-100%)/2)]">
+      <section className="relative w-screen h-screen overflow-hidden -mt-12">
         <div className="absolute inset-0 bg-black/20 transition-colors z-10"></div>
         
         {/* Carrousel d'images */}
@@ -155,8 +155,9 @@ const HomePage = () => {
       </section>
 
       {/* Categories Showcase */}
-      <section className="mt-16 px-4 container mx-auto">
-        <h2 className="text-2xl font-bold mb-8">Nos catégories</h2>
+      <section className="mt-16 w-full">
+        <div className="container mx-auto px-4">
+          <h2 className="text-2xl font-bold mb-8">Nos catégories</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Robes Category */}
@@ -203,12 +204,13 @@ const HomePage = () => {
             </div>
           </div>
         </div>
+        </div>
       </section>
       
       {/* Best Sellers */}
-      <section className="mt-16 px-4 container mx-auto">
-        
-        <div className="flex items-end justify-between mb-8">
+      <section className="mt-16 w-full mb-12">
+        <div className="container mx-auto px-4">
+          <div className="flex items-end justify-between mb-8">
           <div>
             
             <h2 className="text-2xl font-bold mb-8">Meilleures ventes</h2>
@@ -222,6 +224,7 @@ const HomePage = () => {
         ) : (
           <ProductGrid products={featuredProducts} />
         )}
+        </div>
       </section>
     </Layout>
   );

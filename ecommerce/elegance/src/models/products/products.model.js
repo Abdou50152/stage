@@ -146,7 +146,10 @@ const ProductImages = db.productImages; // Added for include
   
   // Get product colors
   const getProductColors = async (productId) => {
-    const product = await getProductsById(productId);
+    const product = await Products.findByPk(productId);
+    if (!product) {
+      throw httpError.NotFound("Product not found");
+    }
     const colors = await product.getColors();
     return colors;
   };
@@ -179,7 +182,10 @@ const ProductImages = db.productImages; // Added for include
 
   // Get product sizes
   const getProductSizes = async (productId) => {
-    const product = await getProductsById(productId);
+    const product = await Products.findByPk(productId);
+    if (!product) {
+      throw httpError.NotFound("Product not found");
+    }
     const sizes = await product.getSizes();
     return sizes;
   };
